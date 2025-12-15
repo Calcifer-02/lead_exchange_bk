@@ -76,6 +76,87 @@ type PropertyFilter struct {
 // MatchedProperty — результат матчинга с коэффициентом схожести.
 type MatchedProperty struct {
 	Property   Property
-	Similarity float64 // Коэффициент схожести (1 - расстояние)
+	Similarity float64 // Косинусная близость (0-1)
+	// Взвешенные scores (заполняются при use_weighted_ranking=true)
+	TotalScore       *float64
+	PriceScore       *float64
+	DistrictScore    *float64
+	RoomsScore       *float64
+	AreaScore        *float64
+	SemanticScore    *float64
+	MatchExplanation *string
+}
+
+// MatchWeights — веса для параметров матчинга (сумма должна быть ~1.0).
+type MatchWeights struct {
+	Price    float64 `json:"price"`    // Вес цены (default: 0.30)
+	District float64 `json:"district"` // Вес района (default: 0.25)
+	Rooms    float64 `json:"rooms"`    // Вес комнат (default: 0.20)
+	Area     float64 `json:"area"`     // Вес площади (default: 0.10)
+	Semantic float64 `json:"semantic"` // Вес семантики (default: 0.15)
+}
+
+// DefaultWeights возвращает веса по умолчанию.
+func DefaultWeights() MatchWeights {
+	return MatchWeights{
+		Price:    0.30,
+		District: 0.25,
+		Rooms:    0.20,
+		Area:     0.10,
+		Semantic: 0.15,
+	}
+}
+
+// Normalize нормализует веса чтобы сумма = 1.
+func (w MatchWeights) Normalize() MatchWeights {
+	total := w.Price + w.District + w.Rooms + w.Area + w.Semantic
+	if total <= 0 {
+		return DefaultWeights()
+	}
+	return MatchWeights{
+		Price:    w.Price / total,
+		District: w.District / total,
+		Rooms:    w.Rooms / total,
+		Area:     w.Area / total,
+		Semantic: w.Semantic / total,
+	}
+}
+
+// SoftCriteria — мягкие критерии для ранжирования (из лида).
+type SoftCriteria struct {
+	TargetPrice        *int64   // Желаемая цена
+	TargetDistrict     *string  // Желаемый район
+	TargetRooms        *int32   // Желаемое кол-во комнат
+	TargetArea         *float64 // Желаемая площадь
+	PreferredDistricts []string // Список предпочтительных районов
+}
+
+// WeightPreset — пресет весов.
+type WeightPreset struct {
+	ID          string
+	Name        string
+	Description string
+	Weights     MatchWeights
+}
+
+// GetWeightPresets возвращает предустановленные наборы весов.
+func GetWeightPresets() []WeightPreset {
+	return []WeightPreset{
+		{ID: "balanced", Name: "Сбалансированный", Description: "Равномерное распределение", Weights: MatchWeights{Price: 0.25, District: 0.25, Rooms: 0.20, Area: 0.15, Semantic: 0.15}},
+		{ID: "budget_first", Name: "Бюджет важнее", Description: "Приоритет на цену", Weights: MatchWeights{Price: 0.45, District: 0.20, Rooms: 0.15, Area: 0.10, Semantic: 0.10}},
+		{ID: "location_first", Name: "Локация важнее", Description: "Приоритет на район", Weights: MatchWeights{Price: 0.20, District: 0.40, Rooms: 0.15, Area: 0.10, Semantic: 0.15}},
+		{ID: "family", Name: "Для семьи", Description: "Комнаты и площадь", Weights: MatchWeights{Price: 0.20, District: 0.20, Rooms: 0.30, Area: 0.20, Semantic: 0.10}},
+		{ID: "semantic", Name: "Умный поиск", Description: "Приоритет на семантику", Weights: MatchWeights{Price: 0.15, District: 0.15, Rooms: 0.15, Area: 0.10, Semantic: 0.45}},
+	}
+}
+
+// GetWeightPresetByID возвращает пресет по ID.
+func GetWeightPresetByID(id string) *WeightPreset {
+	for _, p := range GetWeightPresets() {
+		if p.ID == id {
+			return &p
+		}
+	}
+	return nil
 }
 

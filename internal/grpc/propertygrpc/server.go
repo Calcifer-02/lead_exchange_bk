@@ -16,6 +16,7 @@ type PropertyService interface {
 	UpdateProperty(ctx context.Context, id uuid.UUID, update domain.PropertyFilter) (domain.Property, error)
 	ListProperties(ctx context.Context, filter domain.PropertyFilter) ([]domain.Property, error)
 	MatchProperties(ctx context.Context, leadID uuid.UUID, filter domain.PropertyFilter, limit int) ([]domain.MatchedProperty, error)
+	MatchPropertiesWeighted(ctx context.Context, leadID uuid.UUID, filter domain.PropertyFilter, limit int, weights *domain.MatchWeights, criteria *domain.SoftCriteria, useWeightedRanking bool) ([]domain.MatchedProperty, error)
 	ReindexProperty(ctx context.Context, id uuid.UUID) error
 }
 

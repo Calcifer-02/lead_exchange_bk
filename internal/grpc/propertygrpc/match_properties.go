@@ -2,16 +2,22 @@ package propertygrpc
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"lead_exchange/internal/domain"
 	pb "lead_exchange/pkg"
 
 	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
 
 // MatchProperties — поиск подходящих объектов недвижимости для лида.
+// Поддерживает взвешенное ранжирование через metadata:
+// - x-weights-preset: ID пресета (balanced, budget_first, location_first, family, semantic)
+// - x-use-weighted-ranking: "true" для включения
+// - x-criteria-json: JSON с SoftCriteria
 func (s *propertyServer) MatchProperties(ctx context.Context, in *pb.MatchPropertiesRequest) (*pb.MatchPropertiesResponse, error) {
 	if err := in.ValidateAll(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
@@ -52,19 +58,46 @@ func (s *propertyServer) MatchProperties(ctx context.Context, in *pb.MatchProper
 		limit = int(*in.Limit)
 	}
 
-	matches, err := s.propertyService.MatchProperties(ctx, leadID, filter, limit)
+	// Извлекаем параметры взвешенного ранжирования из metadata
+	var weights *domain.MatchWeights
+	var criteria *domain.SoftCriteria
+	useWeightedRanking := false
+
+	if md, ok := metadata.FromIncomingContext(ctx); ok {
+		// Проверяем пресет весов
+		if vals := md.Get("x-weights-preset"); len(vals) > 0 {
+			if preset := domain.GetWeightPresetByID(vals[0]); preset != nil {
+				weights = &preset.Weights
+				useWeightedRanking = true
+			}
+		}
+		// Проверяем флаг взвешенного ранжирования
+		if vals := md.Get("x-use-weighted-ranking"); len(vals) > 0 && vals[0] == "true" {
+			useWeightedRanking = true
+		}
+		// Парсим критерии из JSON
+		if vals := md.Get("x-criteria-json"); len(vals) > 0 {
+			var c domain.SoftCriteria
+			if err := json.Unmarshal([]byte(vals[0]), &c); err == nil {
+				criteria = &c
+			}
+		}
+	}
+
+	matches, err := s.propertyService.MatchPropertiesWeighted(ctx, leadID, filter, limit, weights, criteria, useWeightedRanking)
 	if err != nil {
 		return nil, status.Error(codes.Internal, fmt.Sprintf("failed to match properties: %v", err))
 	}
 
 	resp := &pb.MatchPropertiesResponse{}
 	for _, match := range matches {
-		resp.Matches = append(resp.Matches, &pb.MatchedProperty{
+		pbMatch := &pb.MatchedProperty{
 			Property:   propertyDomainToProto(match.Property),
 			Similarity: match.Similarity,
-		})
+		}
+		// TODO: После обновления proto добавить TotalScore, PriceScore и др.
+		resp.Matches = append(resp.Matches, pbMatch)
 	}
 
 	return resp, nil
 }
-

@@ -226,9 +226,21 @@ func (s *Service) ListProperties(ctx context.Context, filter domain.PropertyFilt
 
 // MatchProperties находит подходящие объекты недвижимости для лида по векторному сходству.
 func (s *Service) MatchProperties(ctx context.Context, leadID uuid.UUID, filter domain.PropertyFilter, limit int) ([]domain.MatchedProperty, error) {
-	const op = "property.Service.MatchProperties"
+	return s.MatchPropertiesWeighted(ctx, leadID, filter, limit, nil, nil, false)
+}
 
-	// Получаем лид с embedding
+// MatchPropertiesWeighted находит объекты с поддержкой взвешенного ранжирования.
+func (s *Service) MatchPropertiesWeighted(
+	ctx context.Context,
+	leadID uuid.UUID,
+	filter domain.PropertyFilter,
+	limit int,
+	weights *domain.MatchWeights,
+	criteria *domain.SoftCriteria,
+	useWeightedRanking bool,
+) ([]domain.MatchedProperty, error) {
+	const op = "property.Service.MatchPropertiesWeighted"
+
 	lead, err := s.leadService.GetLead(ctx, leadID)
 	if err != nil {
 		return nil, fmt.Errorf("%s: failed to get lead: %w", op, err)
@@ -239,15 +251,238 @@ func (s *Service) MatchProperties(ctx context.Context, leadID uuid.UUID, filter 
 	}
 
 	if limit <= 0 {
-		limit = 10 // Значение по умолчанию
+		limit = 10
 	}
 
-	matches, err := s.repo.MatchProperties(ctx, lead.Embedding, filter, limit)
+	// Для взвешенного ранжирования получаем больше результатов
+	fetchLimit := limit
+	if useWeightedRanking {
+		fetchLimit = limit * 5
+		if fetchLimit > 100 {
+			fetchLimit = 100
+		}
+	}
+
+	matches, err := s.repo.MatchProperties(ctx, lead.Embedding, filter, fetchLimit)
 	if err != nil {
 		s.log.Error("failed to match properties", sl.Err(err))
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
+	if useWeightedRanking && len(matches) > 0 {
+		w := domain.DefaultWeights()
+		if weights != nil {
+			w = weights.Normalize()
+		}
+		matches = s.rankMatches(matches, w, criteria)
+		if len(matches) > limit {
+			matches = matches[:limit]
+		}
+	}
+
 	return matches, nil
+}
+
+// rankMatches применяет взвешенное ранжирование к результатам.
+func (s *Service) rankMatches(matches []domain.MatchedProperty, w domain.MatchWeights, criteria *domain.SoftCriteria) []domain.MatchedProperty {
+	for i := range matches {
+		s.calculateScores(&matches[i], w, criteria)
+	}
+	// Сортируем по TotalScore (убывание)
+	for i := 0; i < len(matches)-1; i++ {
+		for j := i + 1; j < len(matches); j++ {
+			scoreI, scoreJ := 0.0, 0.0
+			if matches[i].TotalScore != nil {
+				scoreI = *matches[i].TotalScore
+			}
+			if matches[j].TotalScore != nil {
+				scoreJ = *matches[j].TotalScore
+			}
+			if scoreJ > scoreI {
+				matches[i], matches[j] = matches[j], matches[i]
+			}
+		}
+	}
+	return matches
+}
+
+// calculateScores вычисляет все scores для одного матча.
+func (s *Service) calculateScores(m *domain.MatchedProperty, w domain.MatchWeights, criteria *domain.SoftCriteria) {
+	p := m.Property
+
+	// Semantic score (косинусная близость уже 0-1)
+	semantic := m.Similarity
+	if semantic < 0 {
+		semantic = (semantic + 1) / 2
+	}
+
+	// Price score
+	price := s.calcPriceScore(p.Price, criteria)
+
+	// District score
+	district := s.calcDistrictScore(p.Address, criteria)
+
+	// Rooms score
+	rooms := s.calcRoomsScore(p.Rooms, criteria)
+
+	// Area score
+	area := s.calcAreaScore(p.Area, criteria)
+
+	// Total weighted score
+	total := w.Price*price + w.District*district + w.Rooms*rooms + w.Area*area + w.Semantic*semantic
+
+	m.TotalScore = &total
+	m.PriceScore = &price
+	m.DistrictScore = &district
+	m.RoomsScore = &rooms
+	m.AreaScore = &area
+	m.SemanticScore = &semantic
+
+	// Генерируем объяснение
+	expl := s.generateExplanation(m)
+	m.MatchExplanation = &expl
+}
+
+func (s *Service) calcPriceScore(objPrice *int64, c *domain.SoftCriteria) float64 {
+	if objPrice == nil || c == nil || c.TargetPrice == nil {
+		return 0.5
+	}
+	target := float64(*c.TargetPrice)
+	price := float64(*objPrice)
+	if target == 0 {
+		return 0.5
+	}
+	dev := abs(price-target) / target * 100
+	if dev <= 20 {
+		return 1.0 - (dev/20)*0.3
+	}
+	return max(0.0, 0.7-(dev-20)/100*0.7)
+}
+
+func (s *Service) calcDistrictScore(address string, c *domain.SoftCriteria) float64 {
+	if c == nil || address == "" {
+		return 0.3
+	}
+	addrLower := toLower(address)
+	if c.TargetDistrict != nil {
+		if contains(addrLower, toLower(*c.TargetDistrict)) {
+			return 1.0
+		}
+	}
+	for _, pref := range c.PreferredDistricts {
+		if contains(addrLower, toLower(pref)) {
+			return 0.7
+		}
+	}
+	return 0.3
+}
+
+func (s *Service) calcRoomsScore(objRooms *int32, c *domain.SoftCriteria) float64 {
+	if objRooms == nil || c == nil || c.TargetRooms == nil {
+		return 0.5
+	}
+	diff := absInt(*objRooms - *c.TargetRooms)
+	switch diff {
+	case 0:
+		return 1.0
+	case 1:
+		return 0.6
+	case 2:
+		return 0.3
+	default:
+		return 0.1
+	}
+}
+
+func (s *Service) calcAreaScore(objArea *float64, c *domain.SoftCriteria) float64 {
+	if objArea == nil || c == nil || c.TargetArea == nil || *c.TargetArea == 0 {
+		return 0.5
+	}
+	dev := abs(*objArea-*c.TargetArea) / *c.TargetArea * 100
+	if dev <= 15 {
+		return 1.0 - (dev/15)*0.3
+	}
+	return max(0.0, 0.7-(dev-15)/50*0.7)
+}
+
+func (s *Service) generateExplanation(m *domain.MatchedProperty) string {
+	var parts []string
+	if m.PriceScore != nil && *m.PriceScore >= 0.7 && m.Property.Price != nil {
+		parts = append(parts, fmt.Sprintf("цена %d₽ подходит", *m.Property.Price))
+	}
+	if m.DistrictScore != nil && *m.DistrictScore >= 0.7 {
+		parts = append(parts, "район подходит")
+	}
+	if m.RoomsScore != nil && *m.RoomsScore >= 0.7 && m.Property.Rooms != nil {
+		parts = append(parts, fmt.Sprintf("%d комн.", *m.Property.Rooms))
+	}
+	if m.AreaScore != nil && *m.AreaScore >= 0.7 && m.Property.Area != nil {
+		parts = append(parts, fmt.Sprintf("%.0f м²", *m.Property.Area))
+	}
+	if m.SemanticScore != nil && *m.SemanticScore >= 0.6 {
+		parts = append(parts, "описание соответствует")
+	}
+	if len(parts) == 0 {
+		return "частичное совпадение"
+	}
+	result := parts[0]
+	for i := 1; i < len(parts); i++ {
+		result += "; " + parts[i]
+	}
+	return result
+}
+
+// Вспомогательные функции
+func abs(x float64) float64 {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
+func absInt(x int32) int32 {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
+func max(a, b float64) float64 {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func toLower(s string) string {
+	result := make([]byte, len(s))
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if c >= 'A' && c <= 'Z' {
+			c += 32
+		}
+		result[i] = c
+	}
+	return string(result)
+}
+
+func contains(s, substr string) bool {
+	return len(substr) <= len(s) && findSubstring(s, substr) >= 0
+}
+
+func findSubstring(s, substr string) int {
+	for i := 0; i <= len(s)-len(substr); i++ {
+		match := true
+		for j := 0; j < len(substr); j++ {
+			if s[i+j] != substr[j] {
+				match = false
+				break
+			}
+		}
+		if match {
+			return i
+		}
+	}
+	return -1
 }
 
