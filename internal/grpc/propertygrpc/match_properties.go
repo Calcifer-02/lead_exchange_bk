@@ -58,22 +58,22 @@ func (s *propertyServer) MatchProperties(ctx context.Context, in *pb.MatchProper
 		limit = int(*in.Limit)
 	}
 
-	// Извлекаем параметры взвешенного ранжирования из metadata
-	var weights *domain.MatchWeights
+	// Взвешенное ранжирование включено по умолчанию с пресетом "balanced"
+	defaultWeights := domain.DefaultWeights()
+	weights := &defaultWeights
 	var criteria *domain.SoftCriteria
-	useWeightedRanking := false
+	useWeightedRanking := true
 
 	if md, ok := metadata.FromIncomingContext(ctx); ok {
-		// Проверяем пресет весов
+		// Переопределяем пресет весов если указан
 		if vals := md.Get("x-weights-preset"); len(vals) > 0 {
 			if preset := domain.GetWeightPresetByID(vals[0]); preset != nil {
 				weights = &preset.Weights
-				useWeightedRanking = true
 			}
 		}
-		// Проверяем флаг взвешенного ранжирования
-		if vals := md.Get("x-use-weighted-ranking"); len(vals) > 0 && vals[0] == "true" {
-			useWeightedRanking = true
+		// Можно отключить взвешенное ранжирование явно
+		if vals := md.Get("x-use-weighted-ranking"); len(vals) > 0 && vals[0] == "false" {
+			useWeightedRanking = false
 		}
 		// Парсим критерии из JSON
 		if vals := md.Get("x-criteria-json"); len(vals) > 0 {
