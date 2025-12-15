@@ -1,0 +1,589 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "Embedding Service",
+        "description": "Stateless сервис генерации эмбеддингов для матчинга недвижимости",
+        "version": "2.0.0"
+    },
+    "paths": {
+        "/": {
+            "get": {
+                "summary": "Root",
+                "description": "Информация о сервисе.",
+                "operationId": "root__get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/health": {
+            "get": {
+                "summary": "Health Check",
+                "description": "Проверка здоровья сервиса.",
+                "operationId": "health_check_health_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HealthResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/embed": {
+            "post": {
+                "summary": "Embed Text",
+                "description": "Генерация эмбеддинга из готового текста.\n\nИспользуйте если текст уже подготовлен на стороне бэкенда.",
+                "operationId": "embed_text_embed_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EmbedRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/EmbedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/prepare-and-embed": {
+            "post": {
+                "summary": "Prepare And Embed",
+                "description": "Подготовка текста из полей и генерация эмбеддинга.\n\n⭐ ОСНОВНОЙ ENDPOINT для интеграции с Go Backend.\n\nПример запроса:\n```json\n{\n    \"title\": \"Ищу квартиру в центре\",\n    \"description\": \"Для семьи с детьми\",\n    \"price\": 10000000,\n    \"district\": \"Центральный\",\n    \"rooms\": 3\n}\n```\n\nGo Backend сохраняет embedding в PostgreSQL:\n```sql\nUPDATE leads SET embedding = $1 WHERE lead_id = $2\n```",
+                "operationId": "prepare_and_embed_prepare_and_embed_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PrepareAndEmbedRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PrepareAndEmbedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/batch": {
+            "post": {
+                "summary": "Batch Process",
+                "description": "Пакетная обработка нескольких объектов.\n\nИспользуйте для массовой индексации при первоначальной загрузке.\n\nПример:\n```json\n{\n    \"items\": [\n        {\"entity_id\": \"lead-1\", \"title\": \"Ищу квартиру\", \"rooms\": 3},\n        {\"entity_id\": \"lead-2\", \"title\": \"Нужен офис\", \"area\": 100}\n    ]\n}\n```",
+                "operationId": "batch_process_batch_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/BatchRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BatchResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/model-info": {
+            "get": {
+                "summary": "Get Model Info",
+                "description": "Информация о модели для настройки pgvector.\n\nИспользуйте для создания колонки правильной размерности.",
+                "operationId": "get_model_info_model_info_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "BatchItem": {
+                "properties": {
+                    "entity_id": {
+                        "type": "string",
+                        "title": "Entity Id",
+                        "description": "ID объекта"
+                    },
+                    "title": {
+                        "type": "string",
+                        "title": "Title",
+                        "default": ""
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "Description",
+                        "default": ""
+                    },
+                    "requirement": {
+                        "anyOf": [
+                            {
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Requirement"
+                    },
+                    "price": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Price"
+                    },
+                    "district": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "District"
+                    },
+                    "rooms": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Rooms"
+                    },
+                    "area": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Area"
+                    },
+                    "address": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Address"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "entity_id"
+                ],
+                "title": "BatchItem",
+                "description": "Один элемент для пакетной обработки."
+            },
+            "BatchRequest": {
+                "properties": {
+                    "items": {
+                        "items": {
+                            "$ref": "#/components/schemas/BatchItem"
+                        },
+                        "type": "array",
+                        "title": "Items"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "items"
+                ],
+                "title": "BatchRequest",
+                "description": "Запрос на пакетную обработку."
+            },
+            "BatchResponse": {
+                "properties": {
+                    "results": {
+                        "items": {
+                            "$ref": "#/components/schemas/BatchResultItem"
+                        },
+                        "type": "array",
+                        "title": "Results"
+                    },
+                    "dimensions": {
+                        "type": "integer",
+                        "title": "Dimensions"
+                    },
+                    "total": {
+                        "type": "integer",
+                        "title": "Total"
+                    },
+                    "successful": {
+                        "type": "integer",
+                        "title": "Successful"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "results",
+                    "dimensions",
+                    "total",
+                    "successful"
+                ],
+                "title": "BatchResponse",
+                "description": "Ответ на пакетную обработку."
+            },
+            "BatchResultItem": {
+                "properties": {
+                    "entity_id": {
+                        "type": "string",
+                        "title": "Entity Id"
+                    },
+                    "embedding": {
+                        "items": {
+                            "type": "number"
+                        },
+                        "type": "array",
+                        "title": "Embedding"
+                    },
+                    "success": {
+                        "type": "boolean",
+                        "title": "Success",
+                        "default": true
+                    },
+                    "error": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Error"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "entity_id",
+                    "embedding"
+                ],
+                "title": "BatchResultItem",
+                "description": "Результат для одного элемента."
+            },
+            "EmbedRequest": {
+                "properties": {
+                    "text": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Text",
+                        "description": "Текст для эмбеддинга"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "text"
+                ],
+                "title": "EmbedRequest",
+                "description": "Запрос на генерацию эмбеддинга из готового текста."
+            },
+            "EmbedResponse": {
+                "properties": {
+                    "embedding": {
+                        "items": {
+                            "type": "number"
+                        },
+                        "type": "array",
+                        "title": "Embedding"
+                    },
+                    "dimensions": {
+                        "type": "integer",
+                        "title": "Dimensions"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "embedding",
+                    "dimensions"
+                ],
+                "title": "EmbedResponse",
+                "description": "Ответ с эмбеддингом."
+            },
+            "HTTPValidationError": {
+                "properties": {
+                    "detail": {
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        },
+                        "type": "array",
+                        "title": "Detail"
+                    }
+                },
+                "type": "object",
+                "title": "HTTPValidationError"
+            },
+            "HealthResponse": {
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "title": "Status"
+                    },
+                    "model": {
+                        "type": "string",
+                        "title": "Model"
+                    },
+                    "dimensions": {
+                        "type": "integer",
+                        "title": "Dimensions"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "status",
+                    "model",
+                    "dimensions"
+                ],
+                "title": "HealthResponse",
+                "description": "Ответ health check."
+            },
+            "PrepareAndEmbedRequest": {
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "title": "Title",
+                        "description": "Название",
+                        "default": ""
+                    },
+                    "description": {
+                        "type": "string",
+                        "title": "Description",
+                        "description": "Описание",
+                        "default": ""
+                    },
+                    "requirement": {
+                        "anyOf": [
+                            {
+                                "type": "object"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Requirement",
+                        "description": "Требования (JSON)"
+                    },
+                    "price": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Price",
+                        "description": "Цена"
+                    },
+                    "district": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "District",
+                        "description": "Район"
+                    },
+                    "rooms": {
+                        "anyOf": [
+                            {
+                                "type": "integer"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Rooms",
+                        "description": "Количество комнат"
+                    },
+                    "area": {
+                        "anyOf": [
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Area",
+                        "description": "Площадь"
+                    },
+                    "address": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Address",
+                        "description": "Адрес"
+                    }
+                },
+                "type": "object",
+                "title": "PrepareAndEmbedRequest",
+                "description": "Запрос на подготовку текста из полей и генерацию эмбеддинга.\n\nЭто ОСНОВНОЙ endpoint для интеграции с Go Backend."
+            },
+            "PrepareAndEmbedResponse": {
+                "properties": {
+                    "embedding": {
+                        "items": {
+                            "type": "number"
+                        },
+                        "type": "array",
+                        "title": "Embedding"
+                    },
+                    "dimensions": {
+                        "type": "integer",
+                        "title": "Dimensions"
+                    },
+                    "prepared_text": {
+                        "type": "string",
+                        "title": "Prepared Text",
+                        "description": "Подготовленный текст (для отладки)"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "embedding",
+                    "dimensions",
+                    "prepared_text"
+                ],
+                "title": "PrepareAndEmbedResponse",
+                "description": "Ответ с эмбеддингом."
+            },
+            "ValidationError": {
+                "properties": {
+                    "loc": {
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ]
+                        },
+                        "type": "array",
+                        "title": "Location"
+                    },
+                    "msg": {
+                        "type": "string",
+                        "title": "Message"
+                    },
+                    "type": {
+                        "type": "string",
+                        "title": "Error Type"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "loc",
+                    "msg",
+                    "type"
+                ],
+                "title": "ValidationError"
+            }
+        }
+    }
+}

@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package leadexchange.v1;
+
+option go_package = "leadexchange/gen/go/leadexchange/v1;leadexchangev1";
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+
+service FileService {
+  // Загрузка одного изображения.
+  rpc UploadFile (UploadFileRequest) returns (UploadFileResponse) {
+    option (google.api.http) = {
+      post: "/v1/files/upload"
+      body: "*"
+    };
+  }
+
+  // Загрузка нескольких изображений.
+  rpc UploadFiles (UploadFilesRequest) returns (UploadFilesResponse) {
+    option (google.api.http) = {
+      post: "/v1/files/uploads"
+      body: "*"
+    };
+  }
+}
+
+message UploadFileRequest {
+  bytes file = 1 [(validate.rules).bytes = {min_len: 1, max_len: 5242880}];
+  string file_name = 2 [(validate.rules).string = {min_len: 1}];
+  string content_type = 3 [(validate.rules).string = {in: ["jpeg", "png", "webp"]}];
+}
+
+message UploadFileResponse {
+  string url = 1;
+}
+
+message UploadFilesRequest {
+  repeated UploadFileRequest files = 1 [(validate.rules).repeated = {min_items: 1, max_items: 10}];
+}
+
+message UploadFilesResponse {
+  repeated string urls = 1;
+}

@@ -1,0 +1,385 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "deal.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "DealService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/deals": {
+      "get": {
+        "summary": "Получить список сделок по фильтру.",
+        "operationId": "DealService_ListDeals",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListDealsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "filter.leadId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter.sellerUserId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter.buyerUserId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter.status",
+            "description": " - DEAL_STATUS_UNSPECIFIED: Не задан (значение по умолчанию, не используется)\n - DEAL_STATUS_PENDING: Создана, ожидает покупателя\n - DEAL_STATUS_ACCEPTED: Принята покупателем\n - DEAL_STATUS_COMPLETED: Завершена (лид передан)\n - DEAL_STATUS_CANCELLED: Отменена продавцом\n - DEAL_STATUS_REJECTED: Отклонена покупателем",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "DEAL_STATUS_UNSPECIFIED",
+              "DEAL_STATUS_PENDING",
+              "DEAL_STATUS_ACCEPTED",
+              "DEAL_STATUS_COMPLETED",
+              "DEAL_STATUS_CANCELLED",
+              "DEAL_STATUS_REJECTED"
+            ],
+            "default": "DEAL_STATUS_UNSPECIFIED"
+          },
+          {
+            "name": "filter.minPrice",
+            "in": "query",
+            "required": false,
+            "type": "number",
+            "format": "double"
+          },
+          {
+            "name": "filter.maxPrice",
+            "in": "query",
+            "required": false,
+            "type": "number",
+            "format": "double"
+          }
+        ],
+        "tags": [
+          "DealService"
+        ]
+      },
+      "post": {
+        "summary": "Создать новую сделку.",
+        "operationId": "DealService_CreateDeal",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1DealResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreateDealRequest"
+            }
+          }
+        ],
+        "tags": [
+          "DealService"
+        ]
+      }
+    },
+    "/v1/deals/{dealId}": {
+      "get": {
+        "summary": "Получить информацию о конкретной сделке.",
+        "operationId": "DealService_GetDeal",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1DealResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "dealId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "DealService"
+        ]
+      },
+      "patch": {
+        "summary": "Обновить сделку (принять, отклонить, отменить, завершить).",
+        "operationId": "DealService_UpdateDeal",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1DealResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "dealId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/DealServiceUpdateDealBody"
+            }
+          }
+        ],
+        "tags": [
+          "DealService"
+        ]
+      }
+    },
+    "/v1/deals/{dealId}/accept": {
+      "post": {
+        "summary": "Принять сделку (покупатель принимает предложение).",
+        "operationId": "DealService_AcceptDeal",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1DealResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "dealId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/DealServiceAcceptDealBody"
+            }
+          }
+        ],
+        "tags": [
+          "DealService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "DealServiceAcceptDealBody": {
+      "type": "object"
+    },
+    "DealServiceUpdateDealBody": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "$ref": "#/definitions/v1DealStatus"
+        },
+        "price": {
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1CreateDealRequest": {
+      "type": "object",
+      "properties": {
+        "leadId": {
+          "type": "string",
+          "title": "UUID лида, который продаётся"
+        },
+        "price": {
+          "type": "number",
+          "format": "double",
+          "title": "Цена сделки"
+        }
+      }
+    },
+    "v1Deal": {
+      "type": "object",
+      "properties": {
+        "dealId": {
+          "type": "string",
+          "title": "UUID сделки"
+        },
+        "leadId": {
+          "type": "string",
+          "title": "UUID лида, который продаётся"
+        },
+        "sellerUserId": {
+          "type": "string",
+          "title": "UUID продавца"
+        },
+        "buyerUserId": {
+          "type": "string",
+          "title": "UUID покупателя (может быть пустым, если сделка ещё не принята)"
+        },
+        "price": {
+          "type": "number",
+          "format": "double",
+          "title": "Цена сделки"
+        },
+        "status": {
+          "$ref": "#/definitions/v1DealStatus",
+          "title": "Статус сделки"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      },
+      "description": "Deal — сущность сделки."
+    },
+    "v1DealResponse": {
+      "type": "object",
+      "properties": {
+        "deal": {
+          "$ref": "#/definitions/v1Deal"
+        }
+      }
+    },
+    "v1DealStatus": {
+      "type": "string",
+      "enum": [
+        "DEAL_STATUS_UNSPECIFIED",
+        "DEAL_STATUS_PENDING",
+        "DEAL_STATUS_ACCEPTED",
+        "DEAL_STATUS_COMPLETED",
+        "DEAL_STATUS_CANCELLED",
+        "DEAL_STATUS_REJECTED"
+      ],
+      "default": "DEAL_STATUS_UNSPECIFIED",
+      "description": "DealStatus — статус сделки.\n\n - DEAL_STATUS_UNSPECIFIED: Не задан (значение по умолчанию, не используется)\n - DEAL_STATUS_PENDING: Создана, ожидает покупателя\n - DEAL_STATUS_ACCEPTED: Принята покупателем\n - DEAL_STATUS_COMPLETED: Завершена (лид передан)\n - DEAL_STATUS_CANCELLED: Отменена продавцом\n - DEAL_STATUS_REJECTED: Отклонена покупателем"
+    },
+    "v1ListDealsRequestFilter": {
+      "type": "object",
+      "properties": {
+        "leadId": {
+          "type": "string"
+        },
+        "sellerUserId": {
+          "type": "string"
+        },
+        "buyerUserId": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/v1DealStatus"
+        },
+        "minPrice": {
+          "type": "number",
+          "format": "double"
+        },
+        "maxPrice": {
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
+    "v1ListDealsResponse": {
+      "type": "object",
+      "properties": {
+        "deals": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Deal"
+          }
+        }
+      }
+    }
+  }
+}

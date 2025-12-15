@@ -1,0 +1,195 @@
+syntax = "proto3";
+
+package leadexchange.v1;
+
+option go_package = "leadexchange/gen/go/leadexchange/v1;leadexchangev1";
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+
+service PropertyService {
+  // Создать новый объект недвижимости.
+  rpc CreateProperty (CreatePropertyRequest) returns (PropertyResponse) {
+    option (google.api.http) = {
+      post: "/v1/properties"
+      body: "*"
+    };
+  }
+
+  // Получить информацию о конкретном объекте недвижимости.
+  rpc GetProperty (GetPropertyRequest) returns (PropertyResponse) {
+    option (google.api.http) = {
+      get: "/v1/properties/{property_id}"
+    };
+  }
+
+  // Получить список объектов недвижимости по фильтру.
+  rpc ListProperties (ListPropertiesRequest) returns (ListPropertiesResponse) {
+    option (google.api.http) = {
+      get: "/v1/properties"
+    };
+  }
+
+  // Обновить объект недвижимости.
+  rpc UpdateProperty (UpdatePropertyRequest) returns (PropertyResponse) {
+    option (google.api.http) = {
+      patch: "/v1/properties/{property_id}"
+      body: "*"
+    };
+  }
+
+  // Найти подходящие объекты недвижимости для лида по векторному сходству.
+  rpc MatchProperties (MatchPropertiesRequest) returns (MatchPropertiesResponse) {
+    option (google.api.http) = {
+      post: "/v1/properties/match"
+      body: "*"
+    };
+  }
+
+  // Переиндексировать объект недвижимости вручную.
+  rpc ReindexProperty (ReindexPropertyRequest) returns (ReindexPropertyResponse) {
+    option (google.api.http) = {
+      post: "/v1/properties/{property_id}/reindex"
+      body: "*"
+    };
+  }
+}
+
+// Property — сущность объекта недвижимости.
+message Property {
+  // UUID объекта недвижимости
+  string property_id = 1;
+  string title = 2 [(validate.rules).string.min_len = 3];
+  string description = 3;
+  string address = 4 [(validate.rules).string.min_len = 5];
+  PropertyType property_type = 5;
+  // Площадь в квадратных метрах
+  optional double area = 6;
+  // Цена в рублях
+  optional int64 price = 7;
+  // Количество комнат
+  optional int32 rooms = 8;
+  PropertyStatus status = 9;
+  // текущий владелец
+  string owner_user_id = 10 [(validate.rules).string.uuid = true];
+  // создатель
+  string created_user_id = 11 [(validate.rules).string.uuid = true];
+  string created_at = 12;
+  string updated_at = 13;
+}
+
+// PropertyType — тип недвижимости.
+enum PropertyType {
+  // Не задан (значение по умолчанию, не используется)
+  PROPERTY_TYPE_UNSPECIFIED = 0;
+  // Квартира
+  PROPERTY_TYPE_APARTMENT = 1;
+  // Дом
+  PROPERTY_TYPE_HOUSE = 2;
+  // Коммерческая недвижимость
+  PROPERTY_TYPE_COMMERCIAL = 3;
+  // Земельный участок
+  PROPERTY_TYPE_LAND = 4;
+}
+
+// PropertyStatus — статус объекта недвижимости.
+enum PropertyStatus {
+  // Не задан (значение по умолчанию, не используется)
+  PROPERTY_STATUS_UNSPECIFIED = 0;
+  // Создан, виден только создателю
+  PROPERTY_STATUS_NEW = 1;
+  // Опубликован и доступен для просмотра
+  PROPERTY_STATUS_PUBLISHED = 2;
+  // Продан
+  PROPERTY_STATUS_SOLD = 3;
+  // Удалён администратором
+  PROPERTY_STATUS_DELETED = 4;
+}
+
+// --- Requests & Responses ---
+
+message CreatePropertyRequest {
+  string title = 1 [(validate.rules).string.min_len = 3];
+  string description = 2;
+  string address = 3 [(validate.rules).string.min_len = 5];
+  PropertyType property_type = 4 [(validate.rules).enum.defined_only = true];
+  optional double area = 5;
+  optional int64 price = 6;
+  optional int32 rooms = 7;
+}
+
+message GetPropertyRequest {
+  string property_id = 1 [(validate.rules).string.uuid = true];
+}
+
+message ListPropertiesRequest {
+  message Filter {
+    optional PropertyStatus status = 1;
+    optional string owner_user_id = 2;
+    optional string created_user_id = 3;
+    optional PropertyType property_type = 4;
+    optional int32 min_rooms = 5;
+    optional int32 max_rooms = 6;
+    optional int64 min_price = 7;
+    optional int64 max_price = 8;
+  }
+  Filter filter = 1;
+}
+
+message ListPropertiesResponse {
+  repeated Property properties = 1;
+}
+
+message UpdatePropertyRequest {
+  string property_id = 1 [(validate.rules).string.uuid = true];
+  optional string title = 2;
+  optional string description = 3;
+  optional string address = 4;
+  optional PropertyType property_type = 5;
+  optional double area = 6;
+  optional int64 price = 7;
+  optional int32 rooms = 8;
+  optional PropertyStatus status = 9;
+  optional string owner_user_id = 10;
+}
+
+message PropertyResponse {
+  Property property = 1;
+}
+
+// MatchPropertiesRequest — запрос на поиск подходящих объектов для лида.
+message MatchPropertiesRequest {
+  string lead_id = 1 [(validate.rules).string.uuid = true];
+  message Filter {
+    optional PropertyStatus status = 1;
+    optional PropertyType property_type = 2;
+    optional int32 min_rooms = 3;
+    optional int32 max_rooms = 4;
+    optional int64 min_price = 5;
+    optional int64 max_price = 6;
+  }
+  Filter filter = 2;
+  // Лимит результатов (по умолчанию 10)
+  optional int32 limit = 3;
+}
+
+// MatchedProperty — объект недвижимости с коэффициентом схожести.
+message MatchedProperty {
+  Property property = 1;
+  // Коэффициент схожести (0-1, где 1 - полное совпадение)
+  double similarity = 2;
+}
+
+// MatchPropertiesResponse — ответ с подходящими объектами.
+message MatchPropertiesResponse {
+  repeated MatchedProperty matches = 1;
+}
+
+message ReindexPropertyRequest {
+  string property_id = 1 [(validate.rules).string.uuid = true];
+}
+
+message ReindexPropertyResponse {
+  bool success = 1;
+  string message = 2;
+}

@@ -1,0 +1,5 @@
+vendor.protogen/
+bin/
+.idea/
+.env
+

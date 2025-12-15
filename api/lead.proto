@@ -1,0 +1,136 @@
+syntax = "proto3";
+
+package leadexchange.v1;
+
+option go_package = "leadexchange/gen/go/leadexchange/v1;leadexchangev1";
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+
+service LeadService {
+  // Создать нового лида.
+  rpc CreateLead (CreateLeadRequest) returns (LeadResponse) {
+    option (google.api.http) = {
+      post: "/v1/leads"
+      body: "*"
+    };
+  }
+
+  // Получить информацию о конкретном лиде.
+  rpc GetLead (GetLeadRequest) returns (LeadResponse) {
+    option (google.api.http) = {
+      get: "/v1/leads/{lead_id}"
+    };
+  }
+
+  // Получить список лидов по фильтру.
+  rpc ListLeads (ListLeadsRequest) returns (ListLeadsResponse) {
+    option (google.api.http) = {
+      get: "/v1/leads"
+    };
+  }
+
+  // Обновить лида.
+  rpc UpdateLead (UpdateLeadRequest) returns (LeadResponse) {
+    option (google.api.http) = {
+      patch: "/v1/leads/{lead_id}"
+      body: "*"
+    };
+  }
+
+  // Переиндексировать лида вручную.
+  rpc ReindexLead (ReindexLeadRequest) returns (ReindexLeadResponse) {
+    option (google.api.http) = {
+      post: "/v1/leads/{lead_id}/reindex"
+      body: "*"
+    };
+  }
+}
+
+// Lead — сущность лида.
+message Lead {
+  // UUID лида
+  string lead_id = 1;
+  string title = 2 [(validate.rules).string.min_len = 3];
+  string description = 3;
+  // JSON с предпочтениями ("roomNumber": 3, "price": "5000000")
+  bytes requirement = 4;
+
+  string contact_name = 5 [(validate.rules).string.min_len = 2];
+  string contact_phone = 6 [(validate.rules).string.pattern = "^\\+?[0-9\\s()-]{7,}$"];
+  string contact_email = 7 [(validate.rules).string.email = true, (validate.rules).string.ignore_empty = true];
+
+  LeadStatus status = 8;
+
+  // текущий владелец
+  string owner_user_id = 9 [(validate.rules).string.uuid = true];
+  // создатель
+  string created_user_id = 10 [(validate.rules).string.uuid = true];
+  string created_at = 11;
+  string updated_at = 12;
+}
+
+// LeadStatus — статус лида.
+enum LeadStatus {
+  // Не задан (значение по умолчанию, не используется)
+  LEAD_STATUS_UNSPECIFIED = 0;
+  // Создан, виден только создателю
+  LEAD_STATUS_NEW = 1;
+  // Опубликован и доступен для покупки
+  LEAD_STATUS_PUBLISHED = 2;
+  // Куплен покупателем
+  LEAD_STATUS_PURCHASED = 3;
+  // Удалён администратором
+  LEAD_STATUS_DELETED = 4;
+}
+
+
+// --- Requests & Responses ---
+
+message CreateLeadRequest {
+  string title = 1 [(validate.rules).string.min_len = 3];
+  string description = 2;
+  bytes requirement = 3;
+  string contact_name = 4 [(validate.rules).string.min_len = 2];
+  string contact_phone = 5 [(validate.rules).string.pattern = "^\\+?[0-9\\s()-]{7,}$"];
+  string contact_email = 6 [(validate.rules).string.email = true, (validate.rules).string.ignore_empty = true];
+}
+
+message GetLeadRequest {
+  string lead_id = 1 [(validate.rules).string.uuid = true];
+}
+
+message ListLeadsRequest {
+  message Filter {
+    optional LeadStatus status = 1;
+    optional string owner_user_id = 2;
+    optional string created_user_id = 3;
+  }
+  Filter filter = 1;
+}
+
+message ReindexLeadRequest {
+  string lead_id = 1 [(validate.rules).string.uuid = true];
+}
+
+message ReindexLeadResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message ListLeadsResponse {
+  repeated Lead leads = 1;
+}
+
+message UpdateLeadRequest {
+  string lead_id = 1 [(validate.rules).string.uuid = true];
+  optional string title = 2;
+  optional string description = 3;
+  optional bytes requirement = 4;
+  optional LeadStatus status = 5;
+  optional string owner_user_id = 6;
+}
+
+message LeadResponse {
+  Lead lead = 1;
+}

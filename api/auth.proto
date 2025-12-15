@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package leadexchange.v1;
+
+option go_package = "leadexchange/gen/go/leadexchange/v1;leadexchangev1";
+
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+import "validate/validate.proto";
+
+service AuthService {
+  // Регистрация нового пользователя.
+  rpc Register (RegisterRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/v1/auth/register"
+      body: "*"
+    };
+  }
+
+  // Авторизация пользователя.
+  rpc Login (LoginRequest) returns (AuthResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/login"
+      body: "*"
+    };
+  }
+
+  // Проверка доступности сервиса.
+  rpc HealthCheck (google.protobuf.Empty) returns (HealthCheckResponse) {
+    option (google.api.http) = {
+      get: "/health"
+    };
+  }
+}
+
+message RegisterRequest {
+  string email = 1 [(validate.rules).string = {email: true}];
+  string password = 2 [(validate.rules).string = {min_len: 8}];
+  string first_name = 3 [(validate.rules).string = {min_len: 1, max_len: 64}];
+  string last_name = 4 [(validate.rules).string = {min_len: 1, max_len: 64}];
+  optional string phone = 5 [(validate.rules).string = {pattern: "^\\+?[0-9]{10,15}$"}];
+  optional string agency_name = 6;
+  optional string avatar_url = 7;
+}
+
+message LoginRequest {
+  string email = 1 [(validate.rules).string = {email: true}];
+  string password = 2 [(validate.rules).string = {min_len: 8}];
+}
+
+message AuthResponse {
+  string token = 1;
+}
+
+message HealthCheckResponse {
+  string status = 1;
+}

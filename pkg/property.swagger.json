@@ -1,0 +1,544 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "property.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "PropertyService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/properties": {
+      "get": {
+        "summary": "Получить список объектов недвижимости по фильтру.",
+        "operationId": "PropertyService_ListProperties",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListPropertiesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "filter.status",
+            "description": " - PROPERTY_STATUS_UNSPECIFIED: Не задан (значение по умолчанию, не используется)\n - PROPERTY_STATUS_NEW: Создан, виден только создателю\n - PROPERTY_STATUS_PUBLISHED: Опубликован и доступен для просмотра\n - PROPERTY_STATUS_SOLD: Продан\n - PROPERTY_STATUS_DELETED: Удалён администратором",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "PROPERTY_STATUS_UNSPECIFIED",
+              "PROPERTY_STATUS_NEW",
+              "PROPERTY_STATUS_PUBLISHED",
+              "PROPERTY_STATUS_SOLD",
+              "PROPERTY_STATUS_DELETED"
+            ],
+            "default": "PROPERTY_STATUS_UNSPECIFIED"
+          },
+          {
+            "name": "filter.ownerUserId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter.createdUserId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter.propertyType",
+            "description": " - PROPERTY_TYPE_UNSPECIFIED: Не задан (значение по умолчанию, не используется)\n - PROPERTY_TYPE_APARTMENT: Квартира\n - PROPERTY_TYPE_HOUSE: Дом\n - PROPERTY_TYPE_COMMERCIAL: Коммерческая недвижимость\n - PROPERTY_TYPE_LAND: Земельный участок",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "PROPERTY_TYPE_UNSPECIFIED",
+              "PROPERTY_TYPE_APARTMENT",
+              "PROPERTY_TYPE_HOUSE",
+              "PROPERTY_TYPE_COMMERCIAL",
+              "PROPERTY_TYPE_LAND"
+            ],
+            "default": "PROPERTY_TYPE_UNSPECIFIED"
+          },
+          {
+            "name": "filter.minRooms",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "filter.maxRooms",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "filter.minPrice",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          },
+          {
+            "name": "filter.maxPrice",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "int64"
+          }
+        ],
+        "tags": [
+          "PropertyService"
+        ]
+      },
+      "post": {
+        "summary": "Создать новый объект недвижимости.",
+        "operationId": "PropertyService_CreateProperty",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1PropertyResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreatePropertyRequest"
+            }
+          }
+        ],
+        "tags": [
+          "PropertyService"
+        ]
+      }
+    },
+    "/v1/properties/match": {
+      "post": {
+        "summary": "Найти подходящие объекты недвижимости для лида по векторному сходству.",
+        "operationId": "PropertyService_MatchProperties",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1MatchPropertiesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "MatchPropertiesRequest — запрос на поиск подходящих объектов для лида.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1MatchPropertiesRequest"
+            }
+          }
+        ],
+        "tags": [
+          "PropertyService"
+        ]
+      }
+    },
+    "/v1/properties/{propertyId}": {
+      "get": {
+        "summary": "Получить информацию о конкретном объекте недвижимости.",
+        "operationId": "PropertyService_GetProperty",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1PropertyResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "propertyId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "PropertyService"
+        ]
+      },
+      "patch": {
+        "summary": "Обновить объект недвижимости.",
+        "operationId": "PropertyService_UpdateProperty",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1PropertyResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "propertyId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PropertyServiceUpdatePropertyBody"
+            }
+          }
+        ],
+        "tags": [
+          "PropertyService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "PropertyServiceUpdatePropertyBody": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "propertyType": {
+          "$ref": "#/definitions/v1PropertyType"
+        },
+        "area": {
+          "type": "number",
+          "format": "double"
+        },
+        "price": {
+          "type": "string",
+          "format": "int64"
+        },
+        "rooms": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "status": {
+          "$ref": "#/definitions/v1PropertyStatus"
+        },
+        "ownerUserId": {
+          "type": "string"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1CreatePropertyRequest": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "propertyType": {
+          "$ref": "#/definitions/v1PropertyType"
+        },
+        "area": {
+          "type": "number",
+          "format": "double"
+        },
+        "price": {
+          "type": "string",
+          "format": "int64"
+        },
+        "rooms": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "v1ListPropertiesRequestFilter": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "$ref": "#/definitions/v1PropertyStatus"
+        },
+        "ownerUserId": {
+          "type": "string"
+        },
+        "createdUserId": {
+          "type": "string"
+        },
+        "propertyType": {
+          "$ref": "#/definitions/v1PropertyType"
+        },
+        "minRooms": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "maxRooms": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "minPrice": {
+          "type": "string",
+          "format": "int64"
+        },
+        "maxPrice": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
+    "v1ListPropertiesResponse": {
+      "type": "object",
+      "properties": {
+        "properties": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Property"
+          }
+        }
+      }
+    },
+    "v1MatchPropertiesRequest": {
+      "type": "object",
+      "properties": {
+        "leadId": {
+          "type": "string"
+        },
+        "filter": {
+          "$ref": "#/definitions/v1MatchPropertiesRequestFilter"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Лимит результатов (по умолчанию 10)"
+        }
+      },
+      "description": "MatchPropertiesRequest — запрос на поиск подходящих объектов для лида."
+    },
+    "v1MatchPropertiesRequestFilter": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "$ref": "#/definitions/v1PropertyStatus"
+        },
+        "propertyType": {
+          "$ref": "#/definitions/v1PropertyType"
+        },
+        "minRooms": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "maxRooms": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "minPrice": {
+          "type": "string",
+          "format": "int64"
+        },
+        "maxPrice": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
+    "v1MatchPropertiesResponse": {
+      "type": "object",
+      "properties": {
+        "matches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1MatchedProperty"
+          }
+        }
+      },
+      "description": "MatchPropertiesResponse — ответ с подходящими объектами."
+    },
+    "v1MatchedProperty": {
+      "type": "object",
+      "properties": {
+        "property": {
+          "$ref": "#/definitions/v1Property"
+        },
+        "similarity": {
+          "type": "number",
+          "format": "double",
+          "title": "Коэффициент схожести (0-1, где 1 - полное совпадение)"
+        }
+      },
+      "description": "MatchedProperty — объект недвижимости с коэффициентом схожести."
+    },
+    "v1Property": {
+      "type": "object",
+      "properties": {
+        "propertyId": {
+          "type": "string",
+          "title": "UUID объекта недвижимости"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "propertyType": {
+          "$ref": "#/definitions/v1PropertyType"
+        },
+        "area": {
+          "type": "number",
+          "format": "double",
+          "title": "Площадь в квадратных метрах"
+        },
+        "price": {
+          "type": "string",
+          "format": "int64",
+          "title": "Цена в рублях"
+        },
+        "rooms": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Количество комнат"
+        },
+        "status": {
+          "$ref": "#/definitions/v1PropertyStatus"
+        },
+        "ownerUserId": {
+          "type": "string",
+          "title": "текущий владелец"
+        },
+        "createdUserId": {
+          "type": "string",
+          "title": "создатель"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      },
+      "description": "Property — сущность объекта недвижимости."
+    },
+    "v1PropertyResponse": {
+      "type": "object",
+      "properties": {
+        "property": {
+          "$ref": "#/definitions/v1Property"
+        }
+      }
+    },
+    "v1PropertyStatus": {
+      "type": "string",
+      "enum": [
+        "PROPERTY_STATUS_UNSPECIFIED",
+        "PROPERTY_STATUS_NEW",
+        "PROPERTY_STATUS_PUBLISHED",
+        "PROPERTY_STATUS_SOLD",
+        "PROPERTY_STATUS_DELETED"
+      ],
+      "default": "PROPERTY_STATUS_UNSPECIFIED",
+      "description": "PropertyStatus — статус объекта недвижимости.\n\n - PROPERTY_STATUS_UNSPECIFIED: Не задан (значение по умолчанию, не используется)\n - PROPERTY_STATUS_NEW: Создан, виден только создателю\n - PROPERTY_STATUS_PUBLISHED: Опубликован и доступен для просмотра\n - PROPERTY_STATUS_SOLD: Продан\n - PROPERTY_STATUS_DELETED: Удалён администратором"
+    },
+    "v1PropertyType": {
+      "type": "string",
+      "enum": [
+        "PROPERTY_TYPE_UNSPECIFIED",
+        "PROPERTY_TYPE_APARTMENT",
+        "PROPERTY_TYPE_HOUSE",
+        "PROPERTY_TYPE_COMMERCIAL",
+        "PROPERTY_TYPE_LAND"
+      ],
+      "default": "PROPERTY_TYPE_UNSPECIFIED",
+      "description": "PropertyType — тип недвижимости.\n\n - PROPERTY_TYPE_UNSPECIFIED: Не задан (значение по умолчанию, не используется)\n - PROPERTY_TYPE_APARTMENT: Квартира\n - PROPERTY_TYPE_HOUSE: Дом\n - PROPERTY_TYPE_COMMERCIAL: Коммерческая недвижимость\n - PROPERTY_TYPE_LAND: Земельный участок"
+    }
+  }
+}

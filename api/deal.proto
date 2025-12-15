@@ -1,0 +1,125 @@
+syntax = "proto3";
+
+package leadexchange.v1;
+
+option go_package = "leadexchange/gen/go/leadexchange/v1;leadexchangev1";
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+
+service DealService {
+  // Создать новую сделку.
+  rpc CreateDeal (CreateDealRequest) returns (DealResponse) {
+    option (google.api.http) = {
+      post: "/v1/deals"
+      body: "*"
+    };
+  }
+
+  // Получить информацию о конкретной сделке.
+  rpc GetDeal (GetDealRequest) returns (DealResponse) {
+    option (google.api.http) = {
+      get: "/v1/deals/{deal_id}"
+    };
+  }
+
+  // Получить список сделок по фильтру.
+  rpc ListDeals (ListDealsRequest) returns (ListDealsResponse) {
+    option (google.api.http) = {
+      get: "/v1/deals"
+    };
+  }
+
+  // Обновить сделку (принять, отклонить, отменить, завершить).
+  rpc UpdateDeal (UpdateDealRequest) returns (DealResponse) {
+    option (google.api.http) = {
+      patch: "/v1/deals/{deal_id}"
+      body: "*"
+    };
+  }
+
+  // Принять сделку (покупатель принимает предложение).
+  rpc AcceptDeal (AcceptDealRequest) returns (DealResponse) {
+    option (google.api.http) = {
+      post: "/v1/deals/{deal_id}/accept"
+      body: "*"
+    };
+  }
+}
+
+// Deal — сущность сделки.
+message Deal {
+  // UUID сделки
+  string deal_id = 1;
+  // UUID лида, который продаётся
+  string lead_id = 2 [(validate.rules).string.uuid = true];
+  // UUID продавца
+  string seller_user_id = 3 [(validate.rules).string.uuid = true];
+  // UUID покупателя (может быть пустым, если сделка ещё не принята)
+  string buyer_user_id = 4;
+  // Цена сделки
+  double price = 5 [(validate.rules).double.gt = 0];
+  // Статус сделки
+  DealStatus status = 6;
+  string created_at = 7;
+  string updated_at = 8;
+}
+
+// DealStatus — статус сделки.
+enum DealStatus {
+  // Не задан (значение по умолчанию, не используется)
+  DEAL_STATUS_UNSPECIFIED = 0;
+  // Создана, ожидает покупателя
+  DEAL_STATUS_PENDING = 1;
+  // Принята покупателем
+  DEAL_STATUS_ACCEPTED = 2;
+  // Завершена (лид передан)
+  DEAL_STATUS_COMPLETED = 3;
+  // Отменена продавцом
+  DEAL_STATUS_CANCELLED = 4;
+  // Отклонена покупателем
+  DEAL_STATUS_REJECTED = 5;
+}
+
+// --- Requests & Responses ---
+
+message CreateDealRequest {
+  // UUID лида, который продаётся
+  string lead_id = 1 [(validate.rules).string.uuid = true];
+  // Цена сделки
+  double price = 2 [(validate.rules).double.gt = 0];
+}
+
+message GetDealRequest {
+  string deal_id = 1 [(validate.rules).string.uuid = true];
+}
+
+message ListDealsRequest {
+  message Filter {
+    optional string lead_id = 1;
+    optional string seller_user_id = 2;
+    optional string buyer_user_id = 3;
+    optional DealStatus status = 4;
+    optional double min_price = 5;
+    optional double max_price = 6;
+  }
+  Filter filter = 1;
+}
+
+message ListDealsResponse {
+  repeated Deal deals = 1;
+}
+
+message UpdateDealRequest {
+  string deal_id = 1 [(validate.rules).string.uuid = true];
+  optional DealStatus status = 2;
+  optional double price = 3;
+}
+
+message AcceptDealRequest {
+  string deal_id = 1 [(validate.rules).string.uuid = true];
+}
+
+message DealResponse {
+  Deal deal = 1;
+}

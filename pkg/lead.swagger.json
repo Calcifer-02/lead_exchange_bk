@@ -1,0 +1,339 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "lead.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "LeadService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/v1/leads": {
+      "get": {
+        "summary": "Получить список лидов по фильтру.",
+        "operationId": "LeadService_ListLeads",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListLeadsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "filter.status",
+            "description": " - LEAD_STATUS_UNSPECIFIED: Не задан (значение по умолчанию, не используется)\n - LEAD_STATUS_NEW: Создан, виден только создателю\n - LEAD_STATUS_PUBLISHED: Опубликован и доступен для покупки\n - LEAD_STATUS_PURCHASED: Куплен покупателем\n - LEAD_STATUS_DELETED: Удалён администратором",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "LEAD_STATUS_UNSPECIFIED",
+              "LEAD_STATUS_NEW",
+              "LEAD_STATUS_PUBLISHED",
+              "LEAD_STATUS_PURCHASED",
+              "LEAD_STATUS_DELETED"
+            ],
+            "default": "LEAD_STATUS_UNSPECIFIED"
+          },
+          {
+            "name": "filter.ownerUserId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "filter.createdUserId",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "LeadService"
+        ]
+      },
+      "post": {
+        "summary": "Создать нового лида.",
+        "operationId": "LeadService_CreateLead",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1LeadResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreateLeadRequest"
+            }
+          }
+        ],
+        "tags": [
+          "LeadService"
+        ]
+      }
+    },
+    "/v1/leads/{leadId}": {
+      "get": {
+        "summary": "Получить информацию о конкретном лиде.",
+        "operationId": "LeadService_GetLead",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1LeadResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "leadId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "LeadService"
+        ]
+      },
+      "patch": {
+        "summary": "Обновить лида.",
+        "operationId": "LeadService_UpdateLead",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1LeadResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "leadId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/LeadServiceUpdateLeadBody"
+            }
+          }
+        ],
+        "tags": [
+          "LeadService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "LeadServiceUpdateLeadBody": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "requirement": {
+          "type": "string",
+          "format": "byte"
+        },
+        "status": {
+          "$ref": "#/definitions/v1LeadStatus"
+        },
+        "ownerUserId": {
+          "type": "string"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1CreateLeadRequest": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "requirement": {
+          "type": "string",
+          "format": "byte"
+        },
+        "contactName": {
+          "type": "string"
+        },
+        "contactPhone": {
+          "type": "string"
+        },
+        "contactEmail": {
+          "type": "string"
+        }
+      }
+    },
+    "v1Lead": {
+      "type": "object",
+      "properties": {
+        "leadId": {
+          "type": "string",
+          "title": "UUID лида"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "requirement": {
+          "type": "string",
+          "format": "byte",
+          "title": "JSON с предпочтениями (\"roomNumber\": 3, \"price\": \"5000000\")"
+        },
+        "contactName": {
+          "type": "string"
+        },
+        "contactPhone": {
+          "type": "string"
+        },
+        "contactEmail": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/v1LeadStatus"
+        },
+        "ownerUserId": {
+          "type": "string",
+          "title": "текущий владелец"
+        },
+        "createdUserId": {
+          "type": "string",
+          "title": "создатель"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      },
+      "description": "Lead — сущность лида."
+    },
+    "v1LeadResponse": {
+      "type": "object",
+      "properties": {
+        "lead": {
+          "$ref": "#/definitions/v1Lead"
+        }
+      }
+    },
+    "v1LeadStatus": {
+      "type": "string",
+      "enum": [
+        "LEAD_STATUS_UNSPECIFIED",
+        "LEAD_STATUS_NEW",
+        "LEAD_STATUS_PUBLISHED",
+        "LEAD_STATUS_PURCHASED",
+        "LEAD_STATUS_DELETED"
+      ],
+      "default": "LEAD_STATUS_UNSPECIFIED",
+      "description": "LeadStatus — статус лида.\n\n - LEAD_STATUS_UNSPECIFIED: Не задан (значение по умолчанию, не используется)\n - LEAD_STATUS_NEW: Создан, виден только создателю\n - LEAD_STATUS_PUBLISHED: Опубликован и доступен для покупки\n - LEAD_STATUS_PURCHASED: Куплен покупателем\n - LEAD_STATUS_DELETED: Удалён администратором"
+    },
+    "v1ListLeadsRequestFilter": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "$ref": "#/definitions/v1LeadStatus"
+        },
+        "ownerUserId": {
+          "type": "string"
+        },
+        "createdUserId": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ListLeadsResponse": {
+      "type": "object",
+      "properties": {
+        "leads": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Lead"
+          }
+        }
+      }
+    }
+  }
+}
