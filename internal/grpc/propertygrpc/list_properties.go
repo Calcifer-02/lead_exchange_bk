@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// ListProperties — получение списка объектов недвижимости по фильтру.
+// ListProperties — получение списка объектов недвижимости по фильтру с пагинацией.
 func (s *propertyServer) ListProperties(ctx context.Context, in *pb.ListPropertiesRequest) (*pb.ListPropertiesResponse, error) {
 	filter := domain.PropertyFilter{}
 
@@ -50,15 +50,34 @@ func (s *propertyServer) ListProperties(ctx context.Context, in *pb.ListProperti
 		if in.Filter.MaxPrice != nil {
 			filter.MaxPrice = in.Filter.MaxPrice
 		}
+		if in.Filter.City != nil {
+			filter.City = in.Filter.City
+		}
 	}
 
-	properties, err := s.propertyService.ListProperties(ctx, filter)
+	// Параметры пагинации
+	pagination := &domain.PaginationParams{}
+	if in.PageSize != nil {
+		pagination.PageSize = *in.PageSize
+	}
+	if in.PageToken != nil {
+		pagination.PageToken = *in.PageToken
+	}
+	if in.OrderBy != nil {
+		pagination.OrderBy = *in.OrderBy
+	}
+	if in.OrderDirection != nil {
+		pagination.OrderDirection = domain.OrderDirection(*in.OrderDirection)
+	}
+	filter.Pagination = pagination
+
+	result, err := s.propertyService.ListProperties(ctx, filter)
 	if err != nil {
 		return nil, status.Error(codes.Internal, fmt.Sprintf("failed to list properties: %v", err))
 	}
 
 	resp := &pb.ListPropertiesResponse{}
-	for _, p := range properties {
+	for _, p := range result.Items {
 		resp.Properties = append(resp.Properties, propertyDomainToProto(p))
 	}
 	return resp, nil

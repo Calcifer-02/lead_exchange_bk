@@ -26,6 +26,7 @@ func (s *propertyServer) UpdateProperty(ctx context.Context, in *pb.UpdateProper
 		Title:       in.Title,
 		Description: in.Description,
 		Address:     in.Address,
+		City:        in.City,
 	}
 
 	if in.PropertyType != nil {

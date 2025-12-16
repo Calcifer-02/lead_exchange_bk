@@ -51,6 +51,9 @@ func (s *propertyServer) MatchProperties(ctx context.Context, in *pb.MatchProper
 		if in.Filter.MaxPrice != nil {
 			filter.MaxPrice = in.Filter.MaxPrice
 		}
+		if in.Filter.City != nil {
+			filter.City = in.Filter.City
+		}
 	}
 
 	limit := 10

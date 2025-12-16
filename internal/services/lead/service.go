@@ -18,7 +18,7 @@ type LeadRepository interface {
 	CreateLead(ctx context.Context, lead domain.Lead) (uuid.UUID, error)
 	GetByID(ctx context.Context, id uuid.UUID) (domain.Lead, error)
 	UpdateLead(ctx context.Context, leadID uuid.UUID, update domain.LeadFilter) error
-	ListLeads(ctx context.Context, filter domain.LeadFilter) ([]domain.Lead, error)
+	ListLeads(ctx context.Context, filter domain.LeadFilter) (*domain.PaginatedResult[domain.Lead], error)
 	UpdateEmbedding(ctx context.Context, leadID uuid.UUID, embedding []float32) error
 }
 
@@ -268,15 +268,15 @@ func (s *Service) reindexLead(ctx context.Context, leadID uuid.UUID, lead domain
 	return nil
 }
 
-// ListLeads — возвращает лидов по фильтру.
-func (s *Service) ListLeads(ctx context.Context, filter domain.LeadFilter) ([]domain.Lead, error) {
+// ListLeads — возвращает лидов по фильтру с пагинацией.
+func (s *Service) ListLeads(ctx context.Context, filter domain.LeadFilter) (*domain.PaginatedResult[domain.Lead], error) {
 	const op = "lead.Service.ListLeads"
 
-	leads, err := s.repo.ListLeads(ctx, filter)
+	result, err := s.repo.ListLeads(ctx, filter)
 	if err != nil {
 		s.log.Error("failed to list leads", sl.Err(err))
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return leads, nil
+	return result, nil
 }

@@ -16,6 +16,8 @@ func leadDomainToProto(l domain.Lead) *pb.Lead {
 		ContactName:   l.ContactName,
 		ContactPhone:  l.ContactPhone,
 		ContactEmail:  lo.FromPtr(l.ContactEmail),
+		City:          l.City,
+		PropertyType:  propertyTypeDomainToProto(l.PropertyType),
 		Status:        leadStatusDomainToProto(l.Status),
 		OwnerUserId:   l.OwnerUserID.String(),
 		CreatedUserId: l.CreatedUserID.String(),
@@ -53,3 +55,34 @@ func protoLeadStatusToDomain(s pb.LeadStatus) domain.LeadStatus {
 		return domain.LeadStatusUnspecified
 	}
 }
+
+func propertyTypeDomainToProto(t domain.PropertyType) pb.PropertyType {
+	switch t {
+	case domain.PropertyTypeApartment:
+		return pb.PropertyType_PROPERTY_TYPE_APARTMENT
+	case domain.PropertyTypeHouse:
+		return pb.PropertyType_PROPERTY_TYPE_HOUSE
+	case domain.PropertyTypeCommercial:
+		return pb.PropertyType_PROPERTY_TYPE_COMMERCIAL
+	case domain.PropertyTypeLand:
+		return pb.PropertyType_PROPERTY_TYPE_LAND
+	default:
+		return pb.PropertyType_PROPERTY_TYPE_UNSPECIFIED
+	}
+}
+
+func protoPropertyTypeToDomain(t pb.PropertyType) domain.PropertyType {
+	switch t {
+	case pb.PropertyType_PROPERTY_TYPE_APARTMENT:
+		return domain.PropertyTypeApartment
+	case pb.PropertyType_PROPERTY_TYPE_HOUSE:
+		return domain.PropertyTypeHouse
+	case pb.PropertyType_PROPERTY_TYPE_COMMERCIAL:
+		return domain.PropertyTypeCommercial
+	case pb.PropertyType_PROPERTY_TYPE_LAND:
+		return domain.PropertyTypeLand
+	default:
+		return domain.PropertyTypeUnspecified
+	}
+}
+

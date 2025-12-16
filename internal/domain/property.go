@@ -12,6 +12,8 @@ type Property struct {
 	Title         string
 	Description   string
 	Address       string
+	// City — город для жёсткой фильтрации при матчинге
+	City          *string
 	PropertyType  PropertyType
 	Area          *float64
 	Price         *int64
@@ -60,6 +62,8 @@ type PropertyFilter struct {
 	Title         *string
 	Description   *string
 	Address       *string
+	// City — жёсткий фильтр по городу (критическое поле)
+	City          *string
 	PropertyType  *PropertyType
 	Area          *float64
 	Price         *int64
@@ -71,6 +75,9 @@ type PropertyFilter struct {
 	Status        *PropertyStatus
 	OwnerUserID   *uuid.UUID
 	CreatedUserID *uuid.UUID
+
+	// Пагинация
+	Pagination    *PaginationParams
 }
 
 // MatchedProperty — результат матчинга с коэффициентом схожести.
@@ -129,6 +136,51 @@ type SoftCriteria struct {
 	TargetRooms        *int32   // Желаемое кол-во комнат
 	TargetArea         *float64 // Желаемая площадь
 	PreferredDistricts []string // Список предпочтительных районов
+}
+
+// HardFilters — жёсткие фильтры для критических полей матчинга.
+// Объекты, не соответствующие этим критериям, исключаются из выдачи.
+type HardFilters struct {
+	// City — город (обязательное совпадение)
+	City *string
+	// PropertyType — тип недвижимости (обязательное совпадение)
+	PropertyType *PropertyType
+	// MinRooms / MaxRooms — диапазон комнат (жёсткий, но с допуском)
+	MinRooms *int32
+	MaxRooms *int32
+	// MinPrice / MaxPrice — ценовой диапазон (жёсткий, но с допуском)
+	MinPrice *int64
+	MaxPrice *int64
+}
+
+// DefaultHardFiltersFromLead создаёт HardFilters из данных лида.
+// Применяет разумные допуски: комнаты ±1, цена ±20%.
+func DefaultHardFiltersFromLead(city *string, propertyType *PropertyType, targetRooms *int32, targetPrice *int64) HardFilters {
+	hf := HardFilters{
+		City:         city,
+		PropertyType: propertyType,
+	}
+
+	// Допуск по комнатам: ±1
+	if targetRooms != nil {
+		minR := *targetRooms - 1
+		if minR < 1 {
+			minR = 1
+		}
+		maxR := *targetRooms + 1
+		hf.MinRooms = &minR
+		hf.MaxRooms = &maxR
+	}
+
+	// Допуск по цене: ±20%
+	if targetPrice != nil {
+		minP := int64(float64(*targetPrice) * 0.8)
+		maxP := int64(float64(*targetPrice) * 1.2)
+		hf.MinPrice = &minP
+		hf.MaxPrice = &maxP
+	}
+
+	return hf
 }
 
 // WeightPreset — пресет весов.

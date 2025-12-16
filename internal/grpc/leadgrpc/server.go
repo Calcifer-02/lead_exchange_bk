@@ -14,7 +14,7 @@ type LeadService interface {
 	CreateLead(ctx context.Context, lead domain.Lead) (uuid.UUID, error)
 	GetLead(ctx context.Context, id uuid.UUID) (domain.Lead, error)
 	UpdateLead(ctx context.Context, id uuid.UUID, update domain.LeadFilter) (domain.Lead, error)
-	ListLeads(ctx context.Context, filter domain.LeadFilter) ([]domain.Lead, error)
+	ListLeads(ctx context.Context, filter domain.LeadFilter) (*domain.PaginatedResult[domain.Lead], error)
 	ReindexLead(ctx context.Context, id uuid.UUID) error
 }
 

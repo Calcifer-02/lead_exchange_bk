@@ -17,9 +17,10 @@ type PropertyRepository interface {
 	CreateProperty(ctx context.Context, property domain.Property) (uuid.UUID, error)
 	GetByID(ctx context.Context, id uuid.UUID) (domain.Property, error)
 	UpdateProperty(ctx context.Context, propertyID uuid.UUID, update domain.PropertyFilter) error
-	ListProperties(ctx context.Context, filter domain.PropertyFilter) ([]domain.Property, error)
+	ListProperties(ctx context.Context, filter domain.PropertyFilter) (*domain.PaginatedResult[domain.Property], error)
 	UpdateEmbedding(ctx context.Context, propertyID uuid.UUID, embedding []float32) error
 	MatchProperties(ctx context.Context, leadEmbedding []float32, filter domain.PropertyFilter, limit int) ([]domain.MatchedProperty, error)
+	MatchPropertiesWithHardFilters(ctx context.Context, leadEmbedding []float32, filter domain.PropertyFilter, hardFilters *domain.HardFilters, limit int) ([]domain.MatchedProperty, error)
 }
 
 // LeadService нужен для получения embedding лида при матчинге.
@@ -211,17 +212,17 @@ func (s *Service) reindexProperty(ctx context.Context, propertyID uuid.UUID, pro
 	return nil
 }
 
-// ListProperties — возвращает объекты недвижимости по фильтру.
-func (s *Service) ListProperties(ctx context.Context, filter domain.PropertyFilter) ([]domain.Property, error) {
+// ListProperties — возвращает объекты недвижимости по фильтру с пагинацией.
+func (s *Service) ListProperties(ctx context.Context, filter domain.PropertyFilter) (*domain.PaginatedResult[domain.Property], error) {
 	const op = "property.Service.ListProperties"
 
-	properties, err := s.repo.ListProperties(ctx, filter)
+	result, err := s.repo.ListProperties(ctx, filter)
 	if err != nil {
 		s.log.Error("failed to list properties", sl.Err(err))
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return properties, nil
+	return result, nil
 }
 
 // MatchProperties находит подходящие объекты недвижимости для лида по векторному сходству.
@@ -229,7 +230,8 @@ func (s *Service) MatchProperties(ctx context.Context, leadID uuid.UUID, filter 
 	return s.MatchPropertiesWeighted(ctx, leadID, filter, limit, nil, nil, false)
 }
 
-// MatchPropertiesWeighted находит объекты с поддержкой взвешенного ранжирования.
+// MatchPropertiesWeighted находит объекты с поддержкой взвешенного ранжирования и жёстких фильтров.
+// Жёсткие фильтры (город, тип недвижимости) применяются автоматически из данных лида.
 func (s *Service) MatchPropertiesWeighted(
 	ctx context.Context,
 	leadID uuid.UUID,
@@ -263,7 +265,15 @@ func (s *Service) MatchPropertiesWeighted(
 		}
 	}
 
-	matches, err := s.repo.MatchProperties(ctx, lead.Embedding, filter, fetchLimit)
+	// Извлекаем критерии из requirement лида для жёстких фильтров
+	hardFilters := s.buildHardFiltersFromLead(lead, criteria)
+
+	s.log.Debug("matching properties with hard filters",
+		slog.String("lead_id", leadID.String()),
+		slog.Any("hard_filters", hardFilters),
+	)
+
+	matches, err := s.repo.MatchPropertiesWithHardFilters(ctx, lead.Embedding, filter, hardFilters, fetchLimit)
 	if err != nil {
 		s.log.Error("failed to match properties", sl.Err(err))
 		return nil, fmt.Errorf("%s: %w", op, err)
@@ -281,6 +291,54 @@ func (s *Service) MatchPropertiesWeighted(
 	}
 
 	return matches, nil
+}
+
+// buildHardFiltersFromLead создаёт жёсткие фильтры из данных лида.
+func (s *Service) buildHardFiltersFromLead(lead domain.Lead, criteria *domain.SoftCriteria) *domain.HardFilters {
+	hf := &domain.HardFilters{}
+
+	// Город — обязательный фильтр из лида
+	if lead.City != nil && *lead.City != "" {
+		// Нормализуем город
+		normalized := domain.NormalizeCity(*lead.City)
+		hf.City = &normalized
+	} else {
+		// Fallback: пытаемся извлечь город из описания
+		if city := domain.ExtractCityFromAddress(lead.Description); city != nil {
+			normalized := domain.NormalizeCity(*city)
+			hf.City = &normalized
+			s.log.Debug("extracted city from lead description",
+				slog.String("lead_id", lead.ID.String()),
+				slog.String("city", normalized),
+			)
+		}
+	}
+
+	// Если переданы soft criteria, используем их для построения диапазонов
+	if criteria != nil {
+		// Тип недвижимости можно передать через criteria (если добавить поле)
+
+		// Комнаты: ±1 от желаемого
+		if criteria.TargetRooms != nil {
+			minR := *criteria.TargetRooms - 1
+			if minR < 1 {
+				minR = 1
+			}
+			maxR := *criteria.TargetRooms + 1
+			hf.MinRooms = &minR
+			hf.MaxRooms = &maxR
+		}
+
+		// Цена: ±20% от желаемой
+		if criteria.TargetPrice != nil {
+			minP := int64(float64(*criteria.TargetPrice) * 0.8)
+			maxP := int64(float64(*criteria.TargetPrice) * 1.2)
+			hf.MinPrice = &minP
+			hf.MaxPrice = &maxP
+		}
+	}
+
+	return hf
 }
 
 // rankMatches применяет взвешенное ранжирование к результатам.

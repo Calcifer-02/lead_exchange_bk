@@ -11,6 +11,7 @@ func propertyDomainToProto(p domain.Property) *pb.Property {
 		Title:         p.Title,
 		Description:   p.Description,
 		Address:       p.Address,
+		City:          p.City,
 		PropertyType:  propertyTypeDomainToProto(p.PropertyType),
 		Status:        propertyStatusDomainToProto(p.Status),
 		OwnerUserId:   p.OwnerUserID.String(),

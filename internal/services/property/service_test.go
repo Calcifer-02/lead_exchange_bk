@@ -29,8 +29,8 @@ func (m *MockPropertyRepository) GetByID(ctx context.Context, id uuid.UUID) (dom
 func (m *MockPropertyRepository) UpdateProperty(ctx context.Context, propertyID uuid.UUID, update domain.PropertyFilter) error {
 	return nil
 }
-func (m *MockPropertyRepository) ListProperties(ctx context.Context, filter domain.PropertyFilter) ([]domain.Property, error) {
-	return nil, nil
+func (m *MockPropertyRepository) ListProperties(ctx context.Context, filter domain.PropertyFilter) (*domain.PaginatedResult[domain.Property], error) {
+	return &domain.PaginatedResult[domain.Property]{}, nil
 }
 func (m *MockPropertyRepository) UpdateEmbedding(ctx context.Context, propertyID uuid.UUID, embedding []float32) error {
 	if m.UpdateEmbeddingFunc != nil {
@@ -39,6 +39,9 @@ func (m *MockPropertyRepository) UpdateEmbedding(ctx context.Context, propertyID
 	return nil
 }
 func (m *MockPropertyRepository) MatchProperties(ctx context.Context, leadEmbedding []float32, filter domain.PropertyFilter, limit int) ([]domain.MatchedProperty, error) {
+	return nil, nil
+}
+func (m *MockPropertyRepository) MatchPropertiesWithHardFilters(ctx context.Context, leadEmbedding []float32, filter domain.PropertyFilter, hardFilters *domain.HardFilters, limit int) ([]domain.MatchedProperty, error) {
 	return nil, nil
 }
 

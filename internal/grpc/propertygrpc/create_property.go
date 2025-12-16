@@ -26,6 +26,7 @@ func (s *propertyServer) CreateProperty(ctx context.Context, in *pb.CreateProper
 		Title:         in.Title,
 		Description:   in.Description,
 		Address:       in.Address,
+		City:          in.City,
 		PropertyType:  protoPropertyTypeToDomain(in.PropertyType),
 		Status:        domain.PropertyStatusNew,
 		OwnerUserID:   userID,

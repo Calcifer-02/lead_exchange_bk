@@ -144,6 +144,12 @@ func (m *Lead) validate(all bool) error {
 
 	// no validation rules for UpdatedAt
 
+	// no validation rules for PropertyType
+
+	if m.City != nil {
+		// no validation rules for City
+	}
+
 	if len(errors) > 0 {
 		return LeadMultiError(errors)
 	}
@@ -354,6 +360,12 @@ func (m *CreateLeadRequest) validate(all bool) error {
 			errors = append(errors, err)
 		}
 
+	}
+
+	// no validation rules for PropertyType
+
+	if m.City != nil {
+		// no validation rules for City
 	}
 
 	if len(errors) > 0 {
@@ -659,6 +671,22 @@ func (m *ListLeadsRequest) validate(all bool) error {
 		}
 	}
 
+	if m.PageSize != nil {
+		// no validation rules for PageSize
+	}
+
+	if m.PageToken != nil {
+		// no validation rules for PageToken
+	}
+
+	if m.OrderBy != nil {
+		// no validation rules for OrderBy
+	}
+
+	if m.OrderDirection != nil {
+		// no validation rules for OrderDirection
+	}
+
 	if len(errors) > 0 {
 		return ListLeadsRequestMultiError(errors)
 	}
@@ -736,6 +764,234 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ListLeadsRequestValidationError{}
+
+// Validate checks the field values on ReindexLeadRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ReindexLeadRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ReindexLeadRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ReindexLeadRequestMultiError, or nil if none found.
+func (m *ReindexLeadRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ReindexLeadRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if err := m._validateUuid(m.GetLeadId()); err != nil {
+		err = ReindexLeadRequestValidationError{
+			field:  "LeadId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return ReindexLeadRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *ReindexLeadRequest) _validateUuid(uuid string) error {
+	if matched := _lead_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
+// ReindexLeadRequestMultiError is an error wrapping multiple validation errors
+// returned by ReindexLeadRequest.ValidateAll() if the designated constraints
+// aren't met.
+type ReindexLeadRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ReindexLeadRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ReindexLeadRequestMultiError) AllErrors() []error { return m }
+
+// ReindexLeadRequestValidationError is the validation error returned by
+// ReindexLeadRequest.Validate if the designated constraints aren't met.
+type ReindexLeadRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ReindexLeadRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ReindexLeadRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ReindexLeadRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ReindexLeadRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ReindexLeadRequestValidationError) ErrorName() string {
+	return "ReindexLeadRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ReindexLeadRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sReindexLeadRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ReindexLeadRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ReindexLeadRequestValidationError{}
+
+// Validate checks the field values on ReindexLeadResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ReindexLeadResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ReindexLeadResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ReindexLeadResponseMultiError, or nil if none found.
+func (m *ReindexLeadResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ReindexLeadResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Success
+
+	// no validation rules for Message
+
+	if len(errors) > 0 {
+		return ReindexLeadResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// ReindexLeadResponseMultiError is an error wrapping multiple validation
+// errors returned by ReindexLeadResponse.ValidateAll() if the designated
+// constraints aren't met.
+type ReindexLeadResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ReindexLeadResponseMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ReindexLeadResponseMultiError) AllErrors() []error { return m }
+
+// ReindexLeadResponseValidationError is the validation error returned by
+// ReindexLeadResponse.Validate if the designated constraints aren't met.
+type ReindexLeadResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ReindexLeadResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ReindexLeadResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ReindexLeadResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ReindexLeadResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ReindexLeadResponseValidationError) ErrorName() string {
+	return "ReindexLeadResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ReindexLeadResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sReindexLeadResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ReindexLeadResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ReindexLeadResponseValidationError{}
 
 // Validate checks the field values on ListLeadsResponse with the rules defined
 // in the proto definition for this message. If any rules are violated, the
@@ -925,6 +1181,14 @@ func (m *UpdateLeadRequest) validate(all bool) error {
 
 	if m.OwnerUserId != nil {
 		// no validation rules for OwnerUserId
+	}
+
+	if m.City != nil {
+		// no validation rules for City
+	}
+
+	if m.PropertyType != nil {
+		// no validation rules for PropertyType
 	}
 
 	if len(errors) > 0 {
@@ -1175,6 +1439,14 @@ func (m *ListLeadsRequest_Filter) validate(all bool) error {
 
 	if m.CreatedUserId != nil {
 		// no validation rules for CreatedUserId
+	}
+
+	if m.City != nil {
+		// no validation rules for City
+	}
+
+	if m.PropertyType != nil {
+		// no validation rules for PropertyType
 	}
 
 	if len(errors) > 0 {

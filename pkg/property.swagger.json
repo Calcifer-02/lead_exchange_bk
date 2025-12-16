@@ -104,6 +104,39 @@
             "required": false,
             "type": "string",
             "format": "int64"
+          },
+          {
+            "name": "filter.city",
+            "description": "Фильтр по городу",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pageSize",
+            "description": "Пагинация",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageToken",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "orderBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "orderDirection",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -243,9 +276,51 @@
           "PropertyService"
         ]
       }
+    },
+    "/v1/properties/{propertyId}/reindex": {
+      "post": {
+        "summary": "Переиндексировать объект недвижимости вручную.",
+        "operationId": "PropertyService_ReindexProperty",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ReindexPropertyResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "propertyId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PropertyServiceReindexPropertyBody"
+            }
+          }
+        ],
+        "tags": [
+          "PropertyService"
+        ]
+      }
     }
   },
   "definitions": {
+    "PropertyServiceReindexPropertyBody": {
+      "type": "object"
+    },
     "PropertyServiceUpdatePropertyBody": {
       "type": "object",
       "properties": {
@@ -278,6 +353,10 @@
         },
         "ownerUserId": {
           "type": "string"
+        },
+        "city": {
+          "type": "string",
+          "title": "Город"
         }
       }
     },
@@ -335,6 +414,10 @@
         "rooms": {
           "type": "integer",
           "format": "int32"
+        },
+        "city": {
+          "type": "string",
+          "title": "Город (для жёсткой фильтрации при матчинге)"
         }
       }
     },
@@ -368,6 +451,10 @@
         "maxPrice": {
           "type": "string",
           "format": "int64"
+        },
+        "city": {
+          "type": "string",
+          "title": "Фильтр по городу"
         }
       }
     },
@@ -424,6 +511,10 @@
         "maxPrice": {
           "type": "string",
           "format": "int64"
+        },
+        "city": {
+          "type": "string",
+          "title": "Фильтр по городу (для жёсткой фильтрации при матчинге)"
         }
       }
     },
@@ -504,6 +595,10 @@
         },
         "updatedAt": {
           "type": "string"
+        },
+        "city": {
+          "type": "string",
+          "title": "Город (для жёсткой фильтрации при матчинге)"
         }
       },
       "description": "Property — сущность объекта недвижимости."
@@ -539,6 +634,17 @@
       ],
       "default": "PROPERTY_TYPE_UNSPECIFIED",
       "description": "PropertyType — тип недвижимости.\n\n - PROPERTY_TYPE_UNSPECIFIED: Не задан (значение по умолчанию, не используется)\n - PROPERTY_TYPE_APARTMENT: Квартира\n - PROPERTY_TYPE_HOUSE: Дом\n - PROPERTY_TYPE_COMMERCIAL: Коммерческая недвижимость\n - PROPERTY_TYPE_LAND: Земельный участок"
+    },
+    "v1ReindexPropertyResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
     }
   }
 }

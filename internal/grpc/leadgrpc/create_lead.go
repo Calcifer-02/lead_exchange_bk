@@ -30,6 +30,8 @@ func (s *leadServer) CreateLead(ctx context.Context, in *pb.CreateLeadRequest) (
 		ContactName:   in.ContactName,
 		ContactPhone:  in.ContactPhone,
 		ContactEmail:  lo.EmptyableToPtr(in.ContactEmail),
+		City:          in.City,
+		PropertyType:  protoPropertyTypeToDomain(in.PropertyType),
 		Status:        domain.LeadStatusNew,
 		OwnerUserID:   userID,
 		CreatedUserID: userID,

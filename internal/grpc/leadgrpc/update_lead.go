@@ -27,6 +27,12 @@ func (s *leadServer) UpdateLead(ctx context.Context, in *pb.UpdateLeadRequest) (
 		Title:       in.Title,
 		Description: in.Description,
 		Requirement: lo.EmptyableToPtr(in.Requirement),
+		City:        in.City,
+	}
+
+	if in.PropertyType != nil {
+		pt := protoPropertyTypeToDomain(*in.PropertyType)
+		filter.PropertyType = &pt
 	}
 
 	if in.Status != nil {

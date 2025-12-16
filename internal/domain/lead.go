@@ -16,6 +16,10 @@ type Lead struct {
 	ContactName   string
 	ContactPhone  string
 	ContactEmail  *string
+	// City — город для жёсткой фильтрации при матчинге
+	City          *string
+	// PropertyType — тип недвижимости для жёсткой фильтрации при матчинге
+	PropertyType  PropertyType
 	Status        LeadStatus
 	OwnerUserID   uuid.UUID
 	CreatedUserID uuid.UUID
@@ -45,7 +49,12 @@ type LeadFilter struct {
 	Title         *string
 	Description   *string
 	Requirement   *[]byte
+	City          *string
+	PropertyType  *PropertyType
 	Status        *LeadStatus
 	OwnerUserID   *uuid.UUID
 	CreatedUserID *uuid.UUID
+
+	// Пагинация
+	Pagination    *PaginationParams
 }

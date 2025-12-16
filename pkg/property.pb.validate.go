@@ -130,6 +130,10 @@ func (m *Property) validate(all bool) error {
 		// no validation rules for Rooms
 	}
 
+	if m.City != nil {
+		// no validation rules for City
+	}
+
 	if len(errors) > 0 {
 		return PropertyMultiError(errors)
 	}
@@ -282,6 +286,10 @@ func (m *CreatePropertyRequest) validate(all bool) error {
 
 	if m.Rooms != nil {
 		// no validation rules for Rooms
+	}
+
+	if m.City != nil {
+		// no validation rules for City
 	}
 
 	if len(errors) > 0 {
@@ -535,6 +543,22 @@ func (m *ListPropertiesRequest) validate(all bool) error {
 				cause:  err,
 			}
 		}
+	}
+
+	if m.PageSize != nil {
+		// no validation rules for PageSize
+	}
+
+	if m.PageToken != nil {
+		// no validation rules for PageToken
+	}
+
+	if m.OrderBy != nil {
+		// no validation rules for OrderBy
+	}
+
+	if m.OrderDirection != nil {
+		// no validation rules for OrderDirection
 	}
 
 	if len(errors) > 0 {
@@ -821,6 +845,10 @@ func (m *UpdatePropertyRequest) validate(all bool) error {
 
 	if m.OwnerUserId != nil {
 		// no validation rules for OwnerUserId
+	}
+
+	if m.City != nil {
+		// no validation rules for City
 	}
 
 	if len(errors) > 0 {
@@ -1462,6 +1490,234 @@ var _ interface {
 	ErrorName() string
 } = MatchPropertiesResponseValidationError{}
 
+// Validate checks the field values on ReindexPropertyRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ReindexPropertyRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ReindexPropertyRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ReindexPropertyRequestMultiError, or nil if none found.
+func (m *ReindexPropertyRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ReindexPropertyRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if err := m._validateUuid(m.GetPropertyId()); err != nil {
+		err = ReindexPropertyRequestValidationError{
+			field:  "PropertyId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return ReindexPropertyRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *ReindexPropertyRequest) _validateUuid(uuid string) error {
+	if matched := _property_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
+// ReindexPropertyRequestMultiError is an error wrapping multiple validation
+// errors returned by ReindexPropertyRequest.ValidateAll() if the designated
+// constraints aren't met.
+type ReindexPropertyRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ReindexPropertyRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ReindexPropertyRequestMultiError) AllErrors() []error { return m }
+
+// ReindexPropertyRequestValidationError is the validation error returned by
+// ReindexPropertyRequest.Validate if the designated constraints aren't met.
+type ReindexPropertyRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ReindexPropertyRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ReindexPropertyRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ReindexPropertyRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ReindexPropertyRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ReindexPropertyRequestValidationError) ErrorName() string {
+	return "ReindexPropertyRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ReindexPropertyRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sReindexPropertyRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ReindexPropertyRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ReindexPropertyRequestValidationError{}
+
+// Validate checks the field values on ReindexPropertyResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ReindexPropertyResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ReindexPropertyResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ReindexPropertyResponseMultiError, or nil if none found.
+func (m *ReindexPropertyResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ReindexPropertyResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Success
+
+	// no validation rules for Message
+
+	if len(errors) > 0 {
+		return ReindexPropertyResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// ReindexPropertyResponseMultiError is an error wrapping multiple validation
+// errors returned by ReindexPropertyResponse.ValidateAll() if the designated
+// constraints aren't met.
+type ReindexPropertyResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ReindexPropertyResponseMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ReindexPropertyResponseMultiError) AllErrors() []error { return m }
+
+// ReindexPropertyResponseValidationError is the validation error returned by
+// ReindexPropertyResponse.Validate if the designated constraints aren't met.
+type ReindexPropertyResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ReindexPropertyResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ReindexPropertyResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ReindexPropertyResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ReindexPropertyResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ReindexPropertyResponseValidationError) ErrorName() string {
+	return "ReindexPropertyResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ReindexPropertyResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sReindexPropertyResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ReindexPropertyResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ReindexPropertyResponseValidationError{}
+
 // Validate checks the field values on ListPropertiesRequest_Filter with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
@@ -1514,6 +1770,10 @@ func (m *ListPropertiesRequest_Filter) validate(all bool) error {
 
 	if m.MaxPrice != nil {
 		// no validation rules for MaxPrice
+	}
+
+	if m.City != nil {
+		// no validation rules for City
 	}
 
 	if len(errors) > 0 {
@@ -1641,6 +1901,10 @@ func (m *MatchPropertiesRequest_Filter) validate(all bool) error {
 
 	if m.MaxPrice != nil {
 		// no validation rules for MaxPrice
+	}
+
+	if m.City != nil {
+		// no validation rules for City
 	}
 
 	if len(errors) > 0 {

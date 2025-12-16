@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// ListLeads — получение списка лидов по фильтру.
+// ListLeads — получение списка лидов по фильтру с пагинацией.
 func (s *leadServer) ListLeads(ctx context.Context, in *pb.ListLeadsRequest) (*pb.ListLeadsResponse, error) {
 	filter := domain.LeadFilter{}
 
@@ -34,15 +34,38 @@ func (s *leadServer) ListLeads(ctx context.Context, in *pb.ListLeadsRequest) (*p
 			}
 			filter.CreatedUserID = &id
 		}
+		if in.Filter.City != nil {
+			filter.City = in.Filter.City
+		}
+		if in.Filter.PropertyType != nil {
+			pt := protoPropertyTypeToDomain(*in.Filter.PropertyType)
+			filter.PropertyType = &pt
+		}
 	}
 
-	leads, err := s.leadService.ListLeads(ctx, filter)
+	// Параметры пагинации
+	pagination := &domain.PaginationParams{}
+	if in.PageSize != nil {
+		pagination.PageSize = *in.PageSize
+	}
+	if in.PageToken != nil {
+		pagination.PageToken = *in.PageToken
+	}
+	if in.OrderBy != nil {
+		pagination.OrderBy = *in.OrderBy
+	}
+	if in.OrderDirection != nil {
+		pagination.OrderDirection = domain.OrderDirection(*in.OrderDirection)
+	}
+	filter.Pagination = pagination
+
+	result, err := s.leadService.ListLeads(ctx, filter)
 	if err != nil {
 		return nil, status.Error(codes.Internal, fmt.Sprintf("failed to list leads: %v", err))
 	}
 
 	resp := &pb.ListLeadsResponse{}
-	for _, l := range leads {
+	for _, l := range result.Items {
 		resp.Leads = append(resp.Leads, leadDomainToProto(l))
 	}
 	return resp, nil

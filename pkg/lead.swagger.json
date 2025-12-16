@@ -61,6 +61,39 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "filter.city",
+            "description": "Фильтр по городу",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "pageSize",
+            "description": "Пагинация",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageToken",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "orderBy",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "orderDirection",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -166,9 +199,51 @@
           "LeadService"
         ]
       }
+    },
+    "/v1/leads/{leadId}/reindex": {
+      "post": {
+        "summary": "Переиндексировать лида вручную.",
+        "operationId": "LeadService_ReindexLead",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ReindexLeadResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "leadId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/LeadServiceReindexLeadBody"
+            }
+          }
+        ],
+        "tags": [
+          "LeadService"
+        ]
+      }
     }
   },
   "definitions": {
+    "LeadServiceReindexLeadBody": {
+      "type": "object"
+    },
     "LeadServiceUpdateLeadBody": {
       "type": "object",
       "properties": {
@@ -187,6 +262,10 @@
         },
         "ownerUserId": {
           "type": "string"
+        },
+        "city": {
+          "type": "string",
+          "title": "Город"
         }
       }
     },
@@ -239,6 +318,10 @@
         },
         "contactEmail": {
           "type": "string"
+        },
+        "city": {
+          "type": "string",
+          "title": "Город (для жёсткой фильтрации при матчинге)"
         }
       }
     },
@@ -285,6 +368,10 @@
         },
         "updatedAt": {
           "type": "string"
+        },
+        "city": {
+          "type": "string",
+          "title": "Город (для жёсткой фильтрации при матчинге)"
         }
       },
       "description": "Lead — сущность лида."
@@ -320,6 +407,10 @@
         },
         "createdUserId": {
           "type": "string"
+        },
+        "city": {
+          "type": "string",
+          "title": "Фильтр по городу"
         }
       }
     },
@@ -332,6 +423,17 @@
             "type": "object",
             "$ref": "#/definitions/v1Lead"
           }
+        }
+      }
+    },
+    "v1ReindexLeadResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        },
+        "message": {
+          "type": "string"
         }
       }
     }

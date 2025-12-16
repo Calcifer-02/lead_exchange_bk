@@ -6,6 +6,7 @@ option go_package = "leadexchange/gen/go/leadexchange/v1;leadexchangev1";
 
 import "google/api/annotations.proto";
 import "validate/validate.proto";
+import "property.proto";
 
 service LeadService {
   // Создать нового лида.
@@ -68,6 +69,10 @@ message Lead {
   string created_user_id = 10 [(validate.rules).string.uuid = true];
   string created_at = 11;
   string updated_at = 12;
+  // Город (для жёсткой фильтрации при матчинге)
+  optional string city = 13;
+  // Тип недвижимости (для жёсткой фильтрации при матчинге)
+  PropertyType property_type = 14;
 }
 
 // LeadStatus — статус лида.
@@ -94,6 +99,10 @@ message CreateLeadRequest {
   string contact_name = 4 [(validate.rules).string.min_len = 2];
   string contact_phone = 5 [(validate.rules).string.pattern = "^\\+?[0-9\\s()-]{7,}$"];
   string contact_email = 6 [(validate.rules).string.email = true, (validate.rules).string.ignore_empty = true];
+  // Город (для жёсткой фильтрации при матчинге)
+  optional string city = 7;
+  // Тип недвижимости (для жёсткой фильтрации при матчинге)
+  PropertyType property_type = 8;
 }
 
 message GetLeadRequest {
@@ -105,8 +114,17 @@ message ListLeadsRequest {
     optional LeadStatus status = 1;
     optional string owner_user_id = 2;
     optional string created_user_id = 3;
+    // Фильтр по городу
+    optional string city = 4;
+    // Фильтр по типу недвижимости
+    optional PropertyType property_type = 5;
   }
   Filter filter = 1;
+  // Пагинация
+  optional int32 page_size = 2;
+  optional string page_token = 3;
+  optional string order_by = 4;
+  optional string order_direction = 5;
 }
 
 message ReindexLeadRequest {
@@ -129,6 +147,9 @@ message UpdateLeadRequest {
   optional bytes requirement = 4;
   optional LeadStatus status = 5;
   optional string owner_user_id = 6;
+  optional string city = 7;
+  // Тип недвижимости
+  optional PropertyType property_type = 8;
 }
 
 message LeadResponse {
