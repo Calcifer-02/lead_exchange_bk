@@ -40,6 +40,11 @@ type App struct {
 	port       int
 }
 
+// ClarificationAgent интерфейс для агента уточнения.
+type ClarificationAgent interface {
+	// Заглушка для будущей интеграции
+}
+
 // New создаёт gRPC + HTTP (Gateway) сервер с Auth, User, File, Lead, Deal и Property сервисами.
 func New(
 	log *slog.Logger,
@@ -49,6 +54,44 @@ func New(
 	leadSvc leadgrpc.LeadService,
 	dealSvc dealgrpc.DealService,
 	propertySvc propertygrpc.PropertyService,
+	port int,
+	secret string,
+	disableAuth bool,
+) *App {
+	return newApp(log, authSvc, userSvc, minioClient, leadSvc, dealSvc, propertySvc, nil, nil, nil, port, secret, disableAuth)
+}
+
+// NewWithAI создаёт gRPC сервер с поддержкой AI-функций (LLM, Vision).
+func NewWithAI(
+	log *slog.Logger,
+	authSvc authgrpc.AuthService,
+	userSvc usergrpc.UserService,
+	minioClient minio.Client,
+	leadSvc leadgrpc.LeadService,
+	dealSvc dealgrpc.DealService,
+	propertySvc propertygrpc.PropertyService,
+	clarificationAgent ClarificationAgent,
+	llmClient interface{}, // llm.Client
+	visionClient interface{}, // vision.Client
+	port int,
+	secret string,
+	disableAuth bool,
+) *App {
+	return newApp(log, authSvc, userSvc, minioClient, leadSvc, dealSvc, propertySvc, llmClient, visionClient, clarificationAgent, port, secret, disableAuth)
+}
+
+// newApp — внутренняя функция для создания приложения.
+func newApp(
+	log *slog.Logger,
+	authSvc authgrpc.AuthService,
+	userSvc usergrpc.UserService,
+	minioClient minio.Client,
+	leadSvc leadgrpc.LeadService,
+	dealSvc dealgrpc.DealService,
+	propertySvc propertygrpc.PropertyService,
+	llmClient interface{},
+	visionClient interface{},
+	clarificationAgent interface{},
 	port int,
 	secret string,
 	disableAuth bool,
@@ -79,12 +122,26 @@ func New(
 
 	gRPCServer := grpc.NewServer(grpc.ChainUnaryInterceptor(interceptors...))
 
-	// ✅ Регистрируем все gRPC сервера
+	// Регистрируем все gRPC сервера
 	authgrpc.RegisterAuthServerGRPC(gRPCServer, authSvc)
 	usergrpc.RegisterUserServerGRPC(gRPCServer, userSvc)
 	leadgrpc.RegisterLeadServerGRPC(gRPCServer, leadSvc)
 	dealgrpc.RegisterDealServerGRPC(gRPCServer, dealSvc, userSvc)
-	propertygrpc.RegisterPropertyServerGRPC(gRPCServer, propertySvc)
+
+	// Регистрируем PropertyService с опциональными AI-клиентами
+	propertyOpts := []propertygrpc.ServerOption{}
+	if llmClient != nil {
+		if lc, ok := llmClient.(propertygrpc.LLMClient); ok {
+			propertyOpts = append(propertyOpts, propertygrpc.WithLLMClient(lc))
+		}
+	}
+	if visionClient != nil {
+		if vc, ok := visionClient.(propertygrpc.VisionClient); ok {
+			propertyOpts = append(propertyOpts, propertygrpc.WithVisionClient(vc))
+		}
+	}
+	propertygrpc.RegisterPropertyServerGRPC(gRPCServer, propertySvc, propertyOpts...)
+
 	if minioClient != nil {
 		filegrpc.RegisterFileServerGRPC(gRPCServer, minioClient)
 	}

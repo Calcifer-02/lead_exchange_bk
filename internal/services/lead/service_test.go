@@ -30,8 +30,8 @@ func (m *MockLeadRepository) GetByID(ctx context.Context, id uuid.UUID) (domain.
 func (m *MockLeadRepository) UpdateLead(ctx context.Context, leadID uuid.UUID, update domain.LeadFilter) error {
 	return nil
 }
-func (m *MockLeadRepository) ListLeads(ctx context.Context, filter domain.LeadFilter) ([]domain.Lead, error) {
-	return nil, nil
+func (m *MockLeadRepository) ListLeads(ctx context.Context, filter domain.LeadFilter) (*domain.PaginatedResult[domain.Lead], error) {
+	return &domain.PaginatedResult[domain.Lead]{}, nil
 }
 func (m *MockLeadRepository) UpdateEmbedding(ctx context.Context, leadID uuid.UUID, embedding []float32) error {
 	if m.UpdateEmbeddingFunc != nil {

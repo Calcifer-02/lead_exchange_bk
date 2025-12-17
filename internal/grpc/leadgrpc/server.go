@@ -3,6 +3,8 @@ package leadgrpc
 import (
 	"context"
 	"lead_exchange/internal/domain"
+	"lead_exchange/internal/services/clarification"
+	"lead_exchange/internal/services/weights"
 	pb "lead_exchange/pkg"
 
 	"github.com/google/uuid"
@@ -18,15 +20,43 @@ type LeadService interface {
 	ReindexLead(ctx context.Context, id uuid.UUID) error
 }
 
-// leadServer реализует gRPC LeadServiceServer.
-type leadServer struct {
+// serverAPI реализует gRPC LeadServiceServer с поддержкой AI-функций.
+type serverAPI struct {
 	pb.UnimplementedLeadServiceServer
-	leadService LeadService
+	leadService        LeadService
+	clarificationAgent *clarification.Agent
+	weightsAnalyzer    *weights.Analyzer
+}
+
+// ServerOption — опция для конфигурации сервера.
+type ServerOption func(*serverAPI)
+
+// WithClarificationAgent добавляет агента уточнения.
+func WithClarificationAgent(agent *clarification.Agent) ServerOption {
+	return func(s *serverAPI) {
+		s.clarificationAgent = agent
+	}
+}
+
+// WithWeightsAnalyzer добавляет анализатор весов.
+func WithWeightsAnalyzer(analyzer *weights.Analyzer) ServerOption {
+	return func(s *serverAPI) {
+		s.weightsAnalyzer = analyzer
+	}
 }
 
 // RegisterLeadServerGRPC регистрирует LeadServiceServer в gRPC сервере.
-func RegisterLeadServerGRPC(server *grpc.Server, svc LeadService) {
-	pb.RegisterLeadServiceServer(server, &leadServer{
+func RegisterLeadServerGRPC(server *grpc.Server, svc LeadService, opts ...ServerOption) {
+	s := &serverAPI{
 		leadService: svc,
-	})
+	}
+
+	for _, opt := range opts {
+		opt(s)
+	}
+
+	pb.RegisterLeadServiceServer(server, s)
 }
+
+// Для обратной совместимости (старый leadServer удалён, используем serverAPI)
+type leadServer = serverAPI

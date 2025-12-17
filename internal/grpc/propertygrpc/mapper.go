@@ -3,6 +3,8 @@ package propertygrpc
 import (
 	"lead_exchange/internal/domain"
 	pb "lead_exchange/pkg"
+
+	"github.com/google/uuid"
 )
 
 func propertyDomainToProto(p domain.Property) *pb.Property {
@@ -93,3 +95,40 @@ func protoPropertyStatusToDomain(s pb.PropertyStatus) domain.PropertyStatus {
 	}
 }
 
+// matchedPropertyToProto конвертирует MatchedProperty в protobuf.
+func matchedPropertyToProto(m domain.MatchedProperty) *pb.MatchedProperty {
+	result := &pb.MatchedProperty{
+		Property:   propertyDomainToProto(m.Property),
+		Similarity: m.Similarity,
+	}
+
+	// Добавляем взвешенные scores (поля добавлены в proto)
+	if m.TotalScore != nil {
+		result.TotalScore = m.TotalScore
+	}
+	if m.PriceScore != nil {
+		result.PriceScore = m.PriceScore
+	}
+	if m.DistrictScore != nil {
+		result.DistrictScore = m.DistrictScore
+	}
+	if m.RoomsScore != nil {
+		result.RoomsScore = m.RoomsScore
+	}
+	if m.AreaScore != nil {
+		result.AreaScore = m.AreaScore
+	}
+	if m.SemanticScore != nil {
+		result.SemanticScore = m.SemanticScore
+	}
+	if m.MatchExplanation != nil {
+		result.MatchExplanation = m.MatchExplanation
+	}
+
+	return result
+}
+
+// parseUUID парсит строку UUID.
+func parseUUID(s string) (uuid.UUID, error) {
+	return uuid.Parse(s)
+}

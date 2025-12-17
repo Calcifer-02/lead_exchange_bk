@@ -1276,6 +1276,34 @@ func (m *MatchedProperty) validate(all bool) error {
 
 	// no validation rules for Similarity
 
+	if m.TotalScore != nil {
+		// no validation rules for TotalScore
+	}
+
+	if m.PriceScore != nil {
+		// no validation rules for PriceScore
+	}
+
+	if m.DistrictScore != nil {
+		// no validation rules for DistrictScore
+	}
+
+	if m.RoomsScore != nil {
+		// no validation rules for RoomsScore
+	}
+
+	if m.AreaScore != nil {
+		// no validation rules for AreaScore
+	}
+
+	if m.SemanticScore != nil {
+		// no validation rules for SemanticScore
+	}
+
+	if m.MatchExplanation != nil {
+		// no validation rules for MatchExplanation
+	}
+
 	if len(errors) > 0 {
 		return MatchedPropertyMultiError(errors)
 	}
@@ -1717,6 +1745,1333 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = ReindexPropertyResponseValidationError{}
+
+// Validate checks the field values on PropertyFilter with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *PropertyFilter) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on PropertyFilter with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in PropertyFilterMultiError,
+// or nil if none found.
+func (m *PropertyFilter) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *PropertyFilter) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.City != nil {
+		// no validation rules for City
+	}
+
+	if m.Status != nil {
+		// no validation rules for Status
+	}
+
+	if m.PropertyType != nil {
+		// no validation rules for PropertyType
+	}
+
+	if m.MinPrice != nil {
+		// no validation rules for MinPrice
+	}
+
+	if m.MaxPrice != nil {
+		// no validation rules for MaxPrice
+	}
+
+	if m.MinRooms != nil {
+		// no validation rules for MinRooms
+	}
+
+	if m.MaxRooms != nil {
+		// no validation rules for MaxRooms
+	}
+
+	if len(errors) > 0 {
+		return PropertyFilterMultiError(errors)
+	}
+
+	return nil
+}
+
+// PropertyFilterMultiError is an error wrapping multiple validation errors
+// returned by PropertyFilter.ValidateAll() if the designated constraints
+// aren't met.
+type PropertyFilterMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m PropertyFilterMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m PropertyFilterMultiError) AllErrors() []error { return m }
+
+// PropertyFilterValidationError is the validation error returned by
+// PropertyFilter.Validate if the designated constraints aren't met.
+type PropertyFilterValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e PropertyFilterValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e PropertyFilterValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e PropertyFilterValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e PropertyFilterValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e PropertyFilterValidationError) ErrorName() string { return "PropertyFilterValidationError" }
+
+// Error satisfies the builtin error interface
+func (e PropertyFilterValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sPropertyFilter.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = PropertyFilterValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = PropertyFilterValidationError{}
+
+// Validate checks the field values on MatchPropertiesAdvancedRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *MatchPropertiesAdvancedRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MatchPropertiesAdvancedRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// MatchPropertiesAdvancedRequestMultiError, or nil if none found.
+func (m *MatchPropertiesAdvancedRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MatchPropertiesAdvancedRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if err := m._validateUuid(m.GetLeadId()); err != nil {
+		err = MatchPropertiesAdvancedRequestValidationError{
+			field:  "LeadId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if all {
+		switch v := interface{}(m.GetFilter()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, MatchPropertiesAdvancedRequestValidationError{
+					field:  "Filter",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, MatchPropertiesAdvancedRequestValidationError{
+					field:  "Filter",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetFilter()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return MatchPropertiesAdvancedRequestValidationError{
+				field:  "Filter",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if m.Limit != nil {
+		// no validation rules for Limit
+	}
+
+	if m.UseHybridSearch != nil {
+		// no validation rules for UseHybridSearch
+	}
+
+	if m.UseReranker != nil {
+		// no validation rules for UseReranker
+	}
+
+	if m.UseDynamicWeights != nil {
+		// no validation rules for UseDynamicWeights
+	}
+
+	if len(errors) > 0 {
+		return MatchPropertiesAdvancedRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *MatchPropertiesAdvancedRequest) _validateUuid(uuid string) error {
+	if matched := _property_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
+// MatchPropertiesAdvancedRequestMultiError is an error wrapping multiple
+// validation errors returned by MatchPropertiesAdvancedRequest.ValidateAll()
+// if the designated constraints aren't met.
+type MatchPropertiesAdvancedRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MatchPropertiesAdvancedRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MatchPropertiesAdvancedRequestMultiError) AllErrors() []error { return m }
+
+// MatchPropertiesAdvancedRequestValidationError is the validation error
+// returned by MatchPropertiesAdvancedRequest.Validate if the designated
+// constraints aren't met.
+type MatchPropertiesAdvancedRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MatchPropertiesAdvancedRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MatchPropertiesAdvancedRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MatchPropertiesAdvancedRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MatchPropertiesAdvancedRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MatchPropertiesAdvancedRequestValidationError) ErrorName() string {
+	return "MatchPropertiesAdvancedRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e MatchPropertiesAdvancedRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMatchPropertiesAdvancedRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MatchPropertiesAdvancedRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MatchPropertiesAdvancedRequestValidationError{}
+
+// Validate checks the field values on GetPropertyJSONLDRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetPropertyJSONLDRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetPropertyJSONLDRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetPropertyJSONLDRequestMultiError, or nil if none found.
+func (m *GetPropertyJSONLDRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetPropertyJSONLDRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if err := m._validateUuid(m.GetPropertyId()); err != nil {
+		err = GetPropertyJSONLDRequestValidationError{
+			field:  "PropertyId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if m.BaseUrl != nil {
+		// no validation rules for BaseUrl
+	}
+
+	if len(errors) > 0 {
+		return GetPropertyJSONLDRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *GetPropertyJSONLDRequest) _validateUuid(uuid string) error {
+	if matched := _property_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
+// GetPropertyJSONLDRequestMultiError is an error wrapping multiple validation
+// errors returned by GetPropertyJSONLDRequest.ValidateAll() if the designated
+// constraints aren't met.
+type GetPropertyJSONLDRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetPropertyJSONLDRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetPropertyJSONLDRequestMultiError) AllErrors() []error { return m }
+
+// GetPropertyJSONLDRequestValidationError is the validation error returned by
+// GetPropertyJSONLDRequest.Validate if the designated constraints aren't met.
+type GetPropertyJSONLDRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetPropertyJSONLDRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetPropertyJSONLDRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetPropertyJSONLDRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetPropertyJSONLDRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetPropertyJSONLDRequestValidationError) ErrorName() string {
+	return "GetPropertyJSONLDRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetPropertyJSONLDRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetPropertyJSONLDRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetPropertyJSONLDRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetPropertyJSONLDRequestValidationError{}
+
+// Validate checks the field values on GetPropertyJSONLDResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetPropertyJSONLDResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetPropertyJSONLDResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetPropertyJSONLDResponseMultiError, or nil if none found.
+func (m *GetPropertyJSONLDResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetPropertyJSONLDResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for JsonldData
+
+	if len(errors) > 0 {
+		return GetPropertyJSONLDResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetPropertyJSONLDResponseMultiError is an error wrapping multiple validation
+// errors returned by GetPropertyJSONLDResponse.ValidateAll() if the
+// designated constraints aren't met.
+type GetPropertyJSONLDResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetPropertyJSONLDResponseMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetPropertyJSONLDResponseMultiError) AllErrors() []error { return m }
+
+// GetPropertyJSONLDResponseValidationError is the validation error returned by
+// GetPropertyJSONLDResponse.Validate if the designated constraints aren't met.
+type GetPropertyJSONLDResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetPropertyJSONLDResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetPropertyJSONLDResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetPropertyJSONLDResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetPropertyJSONLDResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetPropertyJSONLDResponseValidationError) ErrorName() string {
+	return "GetPropertyJSONLDResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetPropertyJSONLDResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetPropertyJSONLDResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetPropertyJSONLDResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetPropertyJSONLDResponseValidationError{}
+
+// Validate checks the field values on GenerateListingContentRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GenerateListingContentRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GenerateListingContentRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// GenerateListingContentRequestMultiError, or nil if none found.
+func (m *GenerateListingContentRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GenerateListingContentRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.PropertyId != nil {
+		// no validation rules for PropertyId
+	}
+
+	if m.PropertyType != nil {
+		// no validation rules for PropertyType
+	}
+
+	if m.Address != nil {
+		// no validation rules for Address
+	}
+
+	if m.City != nil {
+		// no validation rules for City
+	}
+
+	if m.Price != nil {
+		// no validation rules for Price
+	}
+
+	if m.Rooms != nil {
+		// no validation rules for Rooms
+	}
+
+	if m.Area != nil {
+		// no validation rules for Area
+	}
+
+	if m.ExistingTitle != nil {
+		// no validation rules for ExistingTitle
+	}
+
+	if m.ExistingDescription != nil {
+		// no validation rules for ExistingDescription
+	}
+
+	if len(errors) > 0 {
+		return GenerateListingContentRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GenerateListingContentRequestMultiError is an error wrapping multiple
+// validation errors returned by GenerateListingContentRequest.ValidateAll()
+// if the designated constraints aren't met.
+type GenerateListingContentRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GenerateListingContentRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GenerateListingContentRequestMultiError) AllErrors() []error { return m }
+
+// GenerateListingContentRequestValidationError is the validation error
+// returned by GenerateListingContentRequest.Validate if the designated
+// constraints aren't met.
+type GenerateListingContentRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GenerateListingContentRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GenerateListingContentRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GenerateListingContentRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GenerateListingContentRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GenerateListingContentRequestValidationError) ErrorName() string {
+	return "GenerateListingContentRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GenerateListingContentRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGenerateListingContentRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GenerateListingContentRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GenerateListingContentRequestValidationError{}
+
+// Validate checks the field values on GenerateListingContentResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GenerateListingContentResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GenerateListingContentResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// GenerateListingContentResponseMultiError, or nil if none found.
+func (m *GenerateListingContentResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GenerateListingContentResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Title
+
+	// no validation rules for Description
+
+	// no validation rules for Confidence
+
+	if len(errors) > 0 {
+		return GenerateListingContentResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GenerateListingContentResponseMultiError is an error wrapping multiple
+// validation errors returned by GenerateListingContentResponse.ValidateAll()
+// if the designated constraints aren't met.
+type GenerateListingContentResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GenerateListingContentResponseMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GenerateListingContentResponseMultiError) AllErrors() []error { return m }
+
+// GenerateListingContentResponseValidationError is the validation error
+// returned by GenerateListingContentResponse.Validate if the designated
+// constraints aren't met.
+type GenerateListingContentResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GenerateListingContentResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GenerateListingContentResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GenerateListingContentResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GenerateListingContentResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GenerateListingContentResponseValidationError) ErrorName() string {
+	return "GenerateListingContentResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GenerateListingContentResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGenerateListingContentResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GenerateListingContentResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GenerateListingContentResponseValidationError{}
+
+// Validate checks the field values on AnalyzePropertyImagesRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AnalyzePropertyImagesRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AnalyzePropertyImagesRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AnalyzePropertyImagesRequestMultiError, or nil if none found.
+func (m *AnalyzePropertyImagesRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AnalyzePropertyImagesRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if err := m._validateUuid(m.GetPropertyId()); err != nil {
+		err = AnalyzePropertyImagesRequestValidationError{
+			field:  "PropertyId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return AnalyzePropertyImagesRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *AnalyzePropertyImagesRequest) _validateUuid(uuid string) error {
+	if matched := _property_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
+// AnalyzePropertyImagesRequestMultiError is an error wrapping multiple
+// validation errors returned by AnalyzePropertyImagesRequest.ValidateAll() if
+// the designated constraints aren't met.
+type AnalyzePropertyImagesRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AnalyzePropertyImagesRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AnalyzePropertyImagesRequestMultiError) AllErrors() []error { return m }
+
+// AnalyzePropertyImagesRequestValidationError is the validation error returned
+// by AnalyzePropertyImagesRequest.Validate if the designated constraints
+// aren't met.
+type AnalyzePropertyImagesRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AnalyzePropertyImagesRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AnalyzePropertyImagesRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AnalyzePropertyImagesRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AnalyzePropertyImagesRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AnalyzePropertyImagesRequestValidationError) ErrorName() string {
+	return "AnalyzePropertyImagesRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AnalyzePropertyImagesRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAnalyzePropertyImagesRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AnalyzePropertyImagesRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AnalyzePropertyImagesRequestValidationError{}
+
+// Validate checks the field values on ImageFeature with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *ImageFeature) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ImageFeature with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in ImageFeatureMultiError, or
+// nil if none found.
+func (m *ImageFeature) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ImageFeature) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Name
+
+	// no validation rules for Confidence
+
+	// no validation rules for Category
+
+	if len(errors) > 0 {
+		return ImageFeatureMultiError(errors)
+	}
+
+	return nil
+}
+
+// ImageFeatureMultiError is an error wrapping multiple validation errors
+// returned by ImageFeature.ValidateAll() if the designated constraints aren't met.
+type ImageFeatureMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ImageFeatureMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ImageFeatureMultiError) AllErrors() []error { return m }
+
+// ImageFeatureValidationError is the validation error returned by
+// ImageFeature.Validate if the designated constraints aren't met.
+type ImageFeatureValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ImageFeatureValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ImageFeatureValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ImageFeatureValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ImageFeatureValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ImageFeatureValidationError) ErrorName() string { return "ImageFeatureValidationError" }
+
+// Error satisfies the builtin error interface
+func (e ImageFeatureValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sImageFeature.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ImageFeatureValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ImageFeatureValidationError{}
+
+// Validate checks the field values on ImageAnalysisResult with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ImageAnalysisResult) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ImageAnalysisResult with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ImageAnalysisResultMultiError, or nil if none found.
+func (m *ImageAnalysisResult) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ImageAnalysisResult) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetDetectedFeatures() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ImageAnalysisResultValidationError{
+						field:  fmt.Sprintf("DetectedFeatures[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ImageAnalysisResultValidationError{
+						field:  fmt.Sprintf("DetectedFeatures[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ImageAnalysisResultValidationError{
+					field:  fmt.Sprintf("DetectedFeatures[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	// no validation rules for QualityScore
+
+	// no validation rules for Brightness
+
+	if m.RoomType != nil {
+		// no validation rules for RoomType
+	}
+
+	if m.ViewType != nil {
+		// no validation rules for ViewType
+	}
+
+	if len(errors) > 0 {
+		return ImageAnalysisResultMultiError(errors)
+	}
+
+	return nil
+}
+
+// ImageAnalysisResultMultiError is an error wrapping multiple validation
+// errors returned by ImageAnalysisResult.ValidateAll() if the designated
+// constraints aren't met.
+type ImageAnalysisResultMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ImageAnalysisResultMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ImageAnalysisResultMultiError) AllErrors() []error { return m }
+
+// ImageAnalysisResultValidationError is the validation error returned by
+// ImageAnalysisResult.Validate if the designated constraints aren't met.
+type ImageAnalysisResultValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ImageAnalysisResultValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ImageAnalysisResultValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ImageAnalysisResultValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ImageAnalysisResultValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ImageAnalysisResultValidationError) ErrorName() string {
+	return "ImageAnalysisResultValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ImageAnalysisResultValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sImageAnalysisResult.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ImageAnalysisResultValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ImageAnalysisResultValidationError{}
+
+// Validate checks the field values on AnalyzePropertyImagesResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AnalyzePropertyImagesResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AnalyzePropertyImagesResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// AnalyzePropertyImagesResponseMultiError, or nil if none found.
+func (m *AnalyzePropertyImagesResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AnalyzePropertyImagesResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for TotalImages
+
+	// no validation rules for AverageQuality
+
+	for idx, item := range m.GetAllFeatures() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, AnalyzePropertyImagesResponseValidationError{
+						field:  fmt.Sprintf("AllFeatures[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, AnalyzePropertyImagesResponseValidationError{
+						field:  fmt.Sprintf("AllFeatures[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return AnalyzePropertyImagesResponseValidationError{
+					field:  fmt.Sprintf("AllFeatures[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	// no validation rules for OverallAssessment
+
+	for idx, item := range m.GetImageResults() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, AnalyzePropertyImagesResponseValidationError{
+						field:  fmt.Sprintf("ImageResults[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, AnalyzePropertyImagesResponseValidationError{
+						field:  fmt.Sprintf("ImageResults[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return AnalyzePropertyImagesResponseValidationError{
+					field:  fmt.Sprintf("ImageResults[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return AnalyzePropertyImagesResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// AnalyzePropertyImagesResponseMultiError is an error wrapping multiple
+// validation errors returned by AnalyzePropertyImagesResponse.ValidateAll()
+// if the designated constraints aren't met.
+type AnalyzePropertyImagesResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AnalyzePropertyImagesResponseMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AnalyzePropertyImagesResponseMultiError) AllErrors() []error { return m }
+
+// AnalyzePropertyImagesResponseValidationError is the validation error
+// returned by AnalyzePropertyImagesResponse.Validate if the designated
+// constraints aren't met.
+type AnalyzePropertyImagesResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AnalyzePropertyImagesResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AnalyzePropertyImagesResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AnalyzePropertyImagesResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AnalyzePropertyImagesResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AnalyzePropertyImagesResponseValidationError) ErrorName() string {
+	return "AnalyzePropertyImagesResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AnalyzePropertyImagesResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAnalyzePropertyImagesResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AnalyzePropertyImagesResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AnalyzePropertyImagesResponseValidationError{}
 
 // Validate checks the field values on ListPropertiesRequest_Filter with the
 // rules defined in the proto definition for this message. If any rules are

@@ -37,7 +37,6 @@
         "parameters": [
           {
             "name": "filter.status",
-            "description": " - PROPERTY_STATUS_UNSPECIFIED: Не задан (значение по умолчанию, не используется)\n - PROPERTY_STATUS_NEW: Создан, виден только создателю\n - PROPERTY_STATUS_PUBLISHED: Опубликован и доступен для просмотра\n - PROPERTY_STATUS_SOLD: Продан\n - PROPERTY_STATUS_DELETED: Удалён администратором",
             "in": "query",
             "required": false,
             "type": "string",
@@ -64,7 +63,6 @@
           },
           {
             "name": "filter.propertyType",
-            "description": " - PROPERTY_TYPE_UNSPECIFIED: Не задан (значение по умолчанию, не используется)\n - PROPERTY_TYPE_APARTMENT: Квартира\n - PROPERTY_TYPE_HOUSE: Дом\n - PROPERTY_TYPE_COMMERCIAL: Коммерческая недвижимость\n - PROPERTY_TYPE_LAND: Земельный участок",
             "in": "query",
             "required": false,
             "type": "string",
@@ -107,14 +105,12 @@
           },
           {
             "name": "filter.city",
-            "description": "Фильтр по городу",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
             "name": "pageSize",
-            "description": "Пагинация",
             "in": "query",
             "required": false,
             "type": "integer",
@@ -175,6 +171,39 @@
         ]
       }
     },
+    "/v1/properties/generate-content": {
+      "post": {
+        "summary": "Сгенерировать заголовок и описание с помощью AI.",
+        "operationId": "PropertyService_GenerateListingContent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GenerateListingContentResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1GenerateListingContentRequest"
+            }
+          }
+        ],
+        "tags": [
+          "PropertyService"
+        ]
+      }
+    },
     "/v1/properties/match": {
       "post": {
         "summary": "Найти подходящие объекты недвижимости для лида по векторному сходству.",
@@ -201,6 +230,40 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v1MatchPropertiesRequest"
+            }
+          }
+        ],
+        "tags": [
+          "PropertyService"
+        ]
+      }
+    },
+    "/v1/properties/match/advanced": {
+      "post": {
+        "summary": "Расширенный поиск с гибридным поиском и реранкером.",
+        "operationId": "PropertyService_MatchPropertiesAdvanced",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1MatchPropertiesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "description": "MatchPropertiesAdvancedRequest — запрос на расширенный поиск.",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1MatchPropertiesAdvancedRequest"
             }
           }
         ],
@@ -277,6 +340,82 @@
         ]
       }
     },
+    "/v1/properties/{propertyId}/analyze-images": {
+      "post": {
+        "summary": "Анализ изображений объекта недвижимости.",
+        "operationId": "PropertyService_AnalyzePropertyImages",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1AnalyzePropertyImagesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "propertyId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PropertyServiceAnalyzePropertyImagesBody"
+            }
+          }
+        ],
+        "tags": [
+          "PropertyService"
+        ]
+      }
+    },
+    "/v1/properties/{propertyId}/jsonld": {
+      "get": {
+        "summary": "Получить JSON-LD разметку объекта недвижимости (schema.org).",
+        "operationId": "PropertyService_GetPropertyJSONLD",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetPropertyJSONLDResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "propertyId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "baseUrl",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "PropertyService"
+        ]
+      }
+    },
     "/v1/properties/{propertyId}/reindex": {
       "post": {
         "summary": "Переиндексировать объект недвижимости вручную.",
@@ -318,6 +457,17 @@
     }
   },
   "definitions": {
+    "PropertyServiceAnalyzePropertyImagesBody": {
+      "type": "object",
+      "properties": {
+        "imageUrls": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "PropertyServiceReindexPropertyBody": {
       "type": "object"
     },
@@ -355,8 +505,7 @@
           "type": "string"
         },
         "city": {
-          "type": "string",
-          "title": "Город"
+          "type": "string"
         }
       }
     },
@@ -384,6 +533,48 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1AnalyzePropertyImagesResponse": {
+      "type": "object",
+      "properties": {
+        "totalImages": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "averageQuality": {
+          "type": "number",
+          "format": "double"
+        },
+        "detectedRooms": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "allFeatures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ImageFeature"
+          }
+        },
+        "viewTypes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "overallAssessment": {
+          "type": "string"
+        },
+        "imageResults": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ImageAnalysisResult"
           }
         }
       }
@@ -416,8 +607,119 @@
           "format": "int32"
         },
         "city": {
+          "type": "string"
+        }
+      }
+    },
+    "v1GenerateListingContentRequest": {
+      "type": "object",
+      "properties": {
+        "propertyId": {
+          "type": "string"
+        },
+        "propertyType": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "price": {
           "type": "string",
-          "title": "Город (для жёсткой фильтрации при матчинге)"
+          "format": "int64"
+        },
+        "rooms": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "area": {
+          "type": "number",
+          "format": "double"
+        },
+        "existingTitle": {
+          "type": "string"
+        },
+        "existingDescription": {
+          "type": "string"
+        },
+        "features": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1GenerateListingContentResponse": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "keywords": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "confidence": {
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
+    "v1GetPropertyJSONLDResponse": {
+      "type": "object",
+      "properties": {
+        "jsonldData": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "v1ImageAnalysisResult": {
+      "type": "object",
+      "properties": {
+        "detectedFeatures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ImageFeature"
+          }
+        },
+        "roomType": {
+          "type": "string"
+        },
+        "qualityScore": {
+          "type": "number",
+          "format": "double"
+        },
+        "viewType": {
+          "type": "string"
+        },
+        "brightness": {
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
+    "v1ImageFeature": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "confidence": {
+          "type": "number",
+          "format": "double"
+        },
+        "category": {
+          "type": "string"
         }
       }
     },
@@ -453,8 +755,7 @@
           "format": "int64"
         },
         "city": {
-          "type": "string",
-          "title": "Фильтр по городу"
+          "type": "string"
         }
       }
     },
@@ -470,6 +771,31 @@
         }
       }
     },
+    "v1MatchPropertiesAdvancedRequest": {
+      "type": "object",
+      "properties": {
+        "leadId": {
+          "type": "string"
+        },
+        "filter": {
+          "$ref": "#/definitions/v1PropertyFilter"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "useHybridSearch": {
+          "type": "boolean"
+        },
+        "useReranker": {
+          "type": "boolean"
+        },
+        "useDynamicWeights": {
+          "type": "boolean"
+        }
+      },
+      "description": "MatchPropertiesAdvancedRequest — запрос на расширенный поиск."
+    },
     "v1MatchPropertiesRequest": {
       "type": "object",
       "properties": {
@@ -481,8 +807,7 @@
         },
         "limit": {
           "type": "integer",
-          "format": "int32",
-          "title": "Лимит результатов (по умолчанию 10)"
+          "format": "int32"
         }
       },
       "description": "MatchPropertiesRequest — запрос на поиск подходящих объектов для лида."
@@ -513,8 +838,7 @@
           "format": "int64"
         },
         "city": {
-          "type": "string",
-          "title": "Фильтр по городу (для жёсткой фильтрации при матчинге)"
+          "type": "string"
         }
       }
     },
@@ -539,8 +863,35 @@
         },
         "similarity": {
           "type": "number",
+          "format": "double"
+        },
+        "totalScore": {
+          "type": "number",
           "format": "double",
-          "title": "Коэффициент схожести (0-1, где 1 - полное совпадение)"
+          "title": "Взвешенные scores"
+        },
+        "priceScore": {
+          "type": "number",
+          "format": "double"
+        },
+        "districtScore": {
+          "type": "number",
+          "format": "double"
+        },
+        "roomsScore": {
+          "type": "number",
+          "format": "double"
+        },
+        "areaScore": {
+          "type": "number",
+          "format": "double"
+        },
+        "semanticScore": {
+          "type": "number",
+          "format": "double"
+        },
+        "matchExplanation": {
+          "type": "string"
         }
       },
       "description": "MatchedProperty — объект недвижимости с коэффициентом схожести."
@@ -549,8 +900,7 @@
       "type": "object",
       "properties": {
         "propertyId": {
-          "type": "string",
-          "title": "UUID объекта недвижимости"
+          "type": "string"
         },
         "title": {
           "type": "string"
@@ -566,29 +916,24 @@
         },
         "area": {
           "type": "number",
-          "format": "double",
-          "title": "Площадь в квадратных метрах"
+          "format": "double"
         },
         "price": {
           "type": "string",
-          "format": "int64",
-          "title": "Цена в рублях"
+          "format": "int64"
         },
         "rooms": {
           "type": "integer",
-          "format": "int32",
-          "title": "Количество комнат"
+          "format": "int32"
         },
         "status": {
           "$ref": "#/definitions/v1PropertyStatus"
         },
         "ownerUserId": {
-          "type": "string",
-          "title": "текущий владелец"
+          "type": "string"
         },
         "createdUserId": {
-          "type": "string",
-          "title": "создатель"
+          "type": "string"
         },
         "createdAt": {
           "type": "string"
@@ -597,11 +942,41 @@
           "type": "string"
         },
         "city": {
-          "type": "string",
-          "title": "Город (для жёсткой фильтрации при матчинге)"
+          "type": "string"
         }
       },
       "description": "Property — сущность объекта недвижимости."
+    },
+    "v1PropertyFilter": {
+      "type": "object",
+      "properties": {
+        "city": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/v1PropertyStatus"
+        },
+        "propertyType": {
+          "$ref": "#/definitions/v1PropertyType"
+        },
+        "minPrice": {
+          "type": "string",
+          "format": "int64"
+        },
+        "maxPrice": {
+          "type": "string",
+          "format": "int64"
+        },
+        "minRooms": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "maxRooms": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "description": "PropertyFilter — фильтр для поиска объектов."
     },
     "v1PropertyResponse": {
       "type": "object",
@@ -621,7 +996,7 @@
         "PROPERTY_STATUS_DELETED"
       ],
       "default": "PROPERTY_STATUS_UNSPECIFIED",
-      "description": "PropertyStatus — статус объекта недвижимости.\n\n - PROPERTY_STATUS_UNSPECIFIED: Не задан (значение по умолчанию, не используется)\n - PROPERTY_STATUS_NEW: Создан, виден только создателю\n - PROPERTY_STATUS_PUBLISHED: Опубликован и доступен для просмотра\n - PROPERTY_STATUS_SOLD: Продан\n - PROPERTY_STATUS_DELETED: Удалён администратором"
+      "description": "PropertyStatus — статус объекта недвижимости."
     },
     "v1PropertyType": {
       "type": "string",
@@ -633,7 +1008,7 @@
         "PROPERTY_TYPE_LAND"
       ],
       "default": "PROPERTY_TYPE_UNSPECIFIED",
-      "description": "PropertyType — тип недвижимости.\n\n - PROPERTY_TYPE_UNSPECIFIED: Не задан (значение по умолчанию, не используется)\n - PROPERTY_TYPE_APARTMENT: Квартира\n - PROPERTY_TYPE_HOUSE: Дом\n - PROPERTY_TYPE_COMMERCIAL: Коммерческая недвижимость\n - PROPERTY_TYPE_LAND: Земельный участок"
+      "description": "PropertyType — тип недвижимости."
     },
     "v1ReindexPropertyResponse": {
       "type": "object",

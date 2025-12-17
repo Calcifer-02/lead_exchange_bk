@@ -94,11 +94,7 @@ func (s *propertyServer) MatchProperties(ctx context.Context, in *pb.MatchProper
 
 	resp := &pb.MatchPropertiesResponse{}
 	for _, match := range matches {
-		pbMatch := &pb.MatchedProperty{
-			Property:   propertyDomainToProto(match.Property),
-			Similarity: match.Similarity,
-		}
-		// TODO: После обновления proto добавить TotalScore, PriceScore и др.
+		pbMatch := matchedPropertyToProto(match)
 		resp.Matches = append(resp.Matches, pbMatch)
 	}
 

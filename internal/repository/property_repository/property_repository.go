@@ -595,3 +595,275 @@ func isUniqueViolation(err error) bool {
 	return errors.As(err, &pgErr) && pgErr.Code == "23505"
 }
 
+// HybridSearchParams — параметры гибридного поиска.
+type HybridSearchParams struct {
+	// LeadEmbedding — эмбеддинг лида для векторного поиска
+	LeadEmbedding []float32
+	// SearchQuery — текстовый запрос для полнотекстового поиска
+	SearchQuery string
+	// VectorWeight — вес векторного поиска (0-1)
+	VectorWeight float64
+	// FulltextWeight — вес полнотекстового поиска (0-1)
+	FulltextWeight float64
+	// Filter — фильтры
+	Filter domain.PropertyFilter
+	// HardFilters — жёсткие фильтры
+	HardFilters *domain.HardFilters
+	// Limit — количество результатов
+	Limit int
+}
+
+// HybridSearch выполняет гибридный поиск: комбинирует векторный и полнотекстовый поиск.
+// Использует Reciprocal Rank Fusion (RRF) для объединения результатов.
+func (r *PropertyRepository) HybridSearch(ctx context.Context, params HybridSearchParams) ([]domain.MatchedProperty, error) {
+	const op = "PropertyRepository.HybridSearch"
+
+	// Если нет текстового запроса или полнотекстовый поиск отключен, используем только векторный
+	if params.SearchQuery == "" || params.FulltextWeight <= 0 {
+		return r.MatchPropertiesWithHardFilters(ctx, params.LeadEmbedding, params.Filter, params.HardFilters, params.Limit)
+	}
+
+	embeddingStr := repository.VectorToString(params.LeadEmbedding)
+
+	// CTE для векторного поиска
+	// CTE для полнотекстового поиска
+	// Объединение с RRF (Reciprocal Rank Fusion)
+	query := `
+		WITH vector_search AS (
+			SELECT
+				property_id,
+				ROW_NUMBER() OVER (ORDER BY embedding <=> $1::vector) as vector_rank,
+				1 - (embedding <=> $1::vector) as vector_similarity
+			FROM properties
+			WHERE embedding IS NOT NULL
+			%s
+			LIMIT $2
+		),
+		fulltext_search AS (
+			SELECT
+				property_id,
+				ROW_NUMBER() OVER (ORDER BY ts_rank(search_vector, plainto_tsquery('russian', $3)) DESC) as fts_rank,
+				ts_rank(search_vector, plainto_tsquery('russian', $3)) as fts_score
+			FROM properties
+			WHERE search_vector @@ plainto_tsquery('russian', $3)
+			%s
+			LIMIT $2
+		),
+		combined AS (
+			SELECT
+				COALESCE(v.property_id, f.property_id) as property_id,
+				-- RRF score: 1/(k + rank)
+				COALESCE($4::float / (60.0 + v.vector_rank), 0) +
+				COALESCE($5::float / (60.0 + f.fts_rank), 0) as rrf_score,
+				COALESCE(v.vector_similarity, 0) as vector_similarity,
+				COALESCE(f.fts_score, 0) as fts_score
+			FROM vector_search v
+			FULL OUTER JOIN fulltext_search f ON v.property_id = f.property_id
+		)
+		SELECT
+			p.property_id, p.title, p.description, p.address, p.city, p.property_type,
+			p.area, p.price, p.rooms,
+			p.status, p.owner_user_id, p.created_user_id,
+			p.embedding::text, p.created_at, p.updated_at,
+			c.rrf_score,
+			c.vector_similarity,
+			c.fts_score
+		FROM combined c
+		JOIN properties p ON p.property_id = c.property_id
+		ORDER BY c.rrf_score DESC
+		LIMIT $6
+	`
+
+	// Собираем WHERE условия для CTE
+	whereClauses := []string{}
+	params_list := []interface{}{embeddingStr, params.Limit * 2, params.SearchQuery, params.VectorWeight, params.FulltextWeight}
+	paramCount := 6
+
+	// Жёсткие фильтры
+	if params.HardFilters != nil {
+		if params.HardFilters.City != nil && *params.HardFilters.City != "" {
+			whereClauses = append(whereClauses, fmt.Sprintf("AND LOWER(city) = LOWER($%d)", paramCount))
+			params_list = append(params_list, *params.HardFilters.City)
+			paramCount++
+		}
+		if params.HardFilters.PropertyType != nil {
+			whereClauses = append(whereClauses, fmt.Sprintf("AND property_type = $%d", paramCount))
+			params_list = append(params_list, (*params.HardFilters.PropertyType).String())
+			paramCount++
+		}
+		if params.HardFilters.MinRooms != nil {
+			whereClauses = append(whereClauses, fmt.Sprintf("AND (rooms >= $%d OR rooms IS NULL)", paramCount))
+			params_list = append(params_list, *params.HardFilters.MinRooms)
+			paramCount++
+		}
+		if params.HardFilters.MaxRooms != nil {
+			whereClauses = append(whereClauses, fmt.Sprintf("AND (rooms <= $%d OR rooms IS NULL)", paramCount))
+			params_list = append(params_list, *params.HardFilters.MaxRooms)
+			paramCount++
+		}
+		if params.HardFilters.MinPrice != nil {
+			whereClauses = append(whereClauses, fmt.Sprintf("AND (price >= $%d OR price IS NULL)", paramCount))
+			params_list = append(params_list, *params.HardFilters.MinPrice)
+			paramCount++
+		}
+		if params.HardFilters.MaxPrice != nil {
+			whereClauses = append(whereClauses, fmt.Sprintf("AND (price <= $%d OR price IS NULL)", paramCount))
+			params_list = append(params_list, *params.HardFilters.MaxPrice)
+			paramCount++
+		}
+	}
+
+	// Мягкие фильтры
+	if params.Filter.Status != nil {
+		whereClauses = append(whereClauses, fmt.Sprintf("AND status = $%d", paramCount))
+		params_list = append(params_list, (*params.Filter.Status).String())
+		paramCount++
+	}
+
+	whereStr := strings.Join(whereClauses, " ")
+	params_list = append(params_list, params.Limit)
+
+	// Форматируем запрос с WHERE условиями
+	query = fmt.Sprintf(query, whereStr, whereStr)
+
+	rows, err := r.db.Query(ctx, query, params_list...)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	defer rows.Close()
+
+	var matches []domain.MatchedProperty
+	for rows.Next() {
+		var p domain.Property
+		var propertyTypeStr string
+		var statusStr string
+		var embeddingStr *string
+		var rrfScore float64
+		var vectorSimilarity float64
+		var ftsScore float64
+
+		if err := rows.Scan(
+			&p.ID,
+			&p.Title,
+			&p.Description,
+			&p.Address,
+			&p.City,
+			&propertyTypeStr,
+			&p.Area,
+			&p.Price,
+			&p.Rooms,
+			&statusStr,
+			&p.OwnerUserID,
+			&p.CreatedUserID,
+			&embeddingStr,
+			&p.CreatedAt,
+			&p.UpdatedAt,
+			&rrfScore,
+			&vectorSimilarity,
+			&ftsScore,
+		); err != nil {
+			return nil, fmt.Errorf("%s: scan failed: %w", op, err)
+		}
+
+		p.PropertyType = domain.PropertyType(propertyTypeStr)
+		p.Status = domain.PropertyStatus(statusStr)
+
+		if embeddingStr != nil && *embeddingStr != "" {
+			vec, err := repository.StringToVector(*embeddingStr)
+			if err != nil {
+				r.log.Warn("failed to parse embedding", "error", err)
+			} else {
+				p.Embedding = vec
+			}
+		}
+
+		matches = append(matches, domain.MatchedProperty{
+			Property:   p,
+			Similarity: vectorSimilarity, // Используем vector similarity как основной score
+		})
+	}
+
+	return matches, rows.Err()
+}
+
+// FulltextSearch выполняет только полнотекстовый поиск.
+func (r *PropertyRepository) FulltextSearch(ctx context.Context, query string, filter domain.PropertyFilter, limit int) ([]domain.MatchedProperty, error) {
+	const op = "PropertyRepository.FulltextSearch"
+
+	sqlQuery := `
+		SELECT
+			property_id, title, description, address, city, property_type,
+			area, price, rooms,
+			status, owner_user_id, created_user_id,
+			created_at, updated_at,
+			ts_rank(search_vector, plainto_tsquery('russian', $1)) as rank
+		FROM properties
+		WHERE search_vector @@ plainto_tsquery('russian', $1)
+	`
+
+	whereClauses := []string{}
+	params := []interface{}{query}
+	paramCount := 2
+
+	if filter.Status != nil {
+		whereClauses = append(whereClauses, fmt.Sprintf("AND status = $%d", paramCount))
+		params = append(params, (*filter.Status).String())
+		paramCount++
+	}
+	if filter.City != nil {
+		whereClauses = append(whereClauses, fmt.Sprintf("AND LOWER(city) = LOWER($%d)", paramCount))
+		params = append(params, *filter.City)
+		paramCount++
+	}
+
+	if len(whereClauses) > 0 {
+		sqlQuery += " " + strings.Join(whereClauses, " ")
+	}
+
+	sqlQuery += fmt.Sprintf(" ORDER BY rank DESC LIMIT $%d", paramCount)
+	params = append(params, limit)
+
+	rows, err := r.db.Query(ctx, sqlQuery, params...)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	defer rows.Close()
+
+	var matches []domain.MatchedProperty
+	for rows.Next() {
+		var p domain.Property
+		var propertyTypeStr string
+		var statusStr string
+		var rank float64
+
+		if err := rows.Scan(
+			&p.ID,
+			&p.Title,
+			&p.Description,
+			&p.Address,
+			&p.City,
+			&propertyTypeStr,
+			&p.Area,
+			&p.Price,
+			&p.Rooms,
+			&statusStr,
+			&p.OwnerUserID,
+			&p.CreatedUserID,
+			&p.CreatedAt,
+			&p.UpdatedAt,
+			&rank,
+		); err != nil {
+			return nil, fmt.Errorf("%s: scan failed: %w", op, err)
+		}
+
+		p.PropertyType = domain.PropertyType(propertyTypeStr)
+		p.Status = domain.PropertyStatus(statusStr)
+
+		matches = append(matches, domain.MatchedProperty{
+			Property:   p,
+			Similarity: rank,
+		})
+	}
+
+	return matches, rows.Err()
+}

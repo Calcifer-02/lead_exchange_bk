@@ -4,6 +4,7 @@ import (
 	"context"
 	"lead_exchange/internal/domain"
 	"lead_exchange/internal/lib/ml"
+	"lead_exchange/internal/repository/property_repository"
 	"log/slog"
 	"os"
 	"testing"
@@ -42,6 +43,12 @@ func (m *MockPropertyRepository) MatchProperties(ctx context.Context, leadEmbedd
 	return nil, nil
 }
 func (m *MockPropertyRepository) MatchPropertiesWithHardFilters(ctx context.Context, leadEmbedding []float32, filter domain.PropertyFilter, hardFilters *domain.HardFilters, limit int) ([]domain.MatchedProperty, error) {
+	return nil, nil
+}
+func (m *MockPropertyRepository) HybridSearch(ctx context.Context, params property_repository.HybridSearchParams) ([]domain.MatchedProperty, error) {
+	return nil, nil
+}
+func (m *MockPropertyRepository) FulltextSearch(ctx context.Context, query string, filter domain.PropertyFilter, limit int) ([]domain.MatchedProperty, error) {
 	return nil, nil
 }
 

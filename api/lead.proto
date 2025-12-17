@@ -46,49 +46,58 @@ service LeadService {
       body: "*"
     };
   }
+
+  // ========== AI-ФУНКЦИИ ==========
+
+  // Получить уточняющие вопросы для "короткого" лида.
+  rpc GetClarificationQuestions (GetClarificationQuestionsRequest) returns (GetClarificationQuestionsResponse) {
+    option (google.api.http) = {
+      get: "/v1/leads/{lead_id}/clarification"
+    };
+  }
+
+  // Применить ответы на уточняющие вопросы.
+  rpc ApplyClarificationAnswers (ApplyClarificationAnswersRequest) returns (ApplyClarificationAnswersResponse) {
+    option (google.api.http) = {
+      post: "/v1/leads/{lead_id}/clarification"
+      body: "*"
+    };
+  }
+
+  // Анализ намерений лида для определения оптимальных весов матчинга.
+  rpc AnalyzeLeadIntent (AnalyzeLeadIntentRequest) returns (AnalyzeLeadIntentResponse) {
+    option (google.api.http) = {
+      get: "/v1/leads/{lead_id}/analyze"
+    };
+  }
 }
 
 // Lead — сущность лида.
 message Lead {
-  // UUID лида
   string lead_id = 1;
   string title = 2 [(validate.rules).string.min_len = 3];
   string description = 3;
-  // JSON с предпочтениями ("roomNumber": 3, "price": "5000000")
   bytes requirement = 4;
-
   string contact_name = 5 [(validate.rules).string.min_len = 2];
   string contact_phone = 6 [(validate.rules).string.pattern = "^\\+?[0-9\\s()-]{7,}$"];
   string contact_email = 7 [(validate.rules).string.email = true, (validate.rules).string.ignore_empty = true];
-
   LeadStatus status = 8;
-
-  // текущий владелец
   string owner_user_id = 9 [(validate.rules).string.uuid = true];
-  // создатель
   string created_user_id = 10 [(validate.rules).string.uuid = true];
   string created_at = 11;
   string updated_at = 12;
-  // Город (для жёсткой фильтрации при матчинге)
   optional string city = 13;
-  // Тип недвижимости (для жёсткой фильтрации при матчинге)
   PropertyType property_type = 14;
 }
 
 // LeadStatus — статус лида.
 enum LeadStatus {
-  // Не задан (значение по умолчанию, не используется)
   LEAD_STATUS_UNSPECIFIED = 0;
-  // Создан, виден только создателю
   LEAD_STATUS_NEW = 1;
-  // Опубликован и доступен для покупки
   LEAD_STATUS_PUBLISHED = 2;
-  // Куплен покупателем
   LEAD_STATUS_PURCHASED = 3;
-  // Удалён администратором
   LEAD_STATUS_DELETED = 4;
 }
-
 
 // --- Requests & Responses ---
 
@@ -99,9 +108,7 @@ message CreateLeadRequest {
   string contact_name = 4 [(validate.rules).string.min_len = 2];
   string contact_phone = 5 [(validate.rules).string.pattern = "^\\+?[0-9\\s()-]{7,}$"];
   string contact_email = 6 [(validate.rules).string.email = true, (validate.rules).string.ignore_empty = true];
-  // Город (для жёсткой фильтрации при матчинге)
   optional string city = 7;
-  // Тип недвижимости (для жёсткой фильтрации при матчинге)
   PropertyType property_type = 8;
 }
 
@@ -114,13 +121,10 @@ message ListLeadsRequest {
     optional LeadStatus status = 1;
     optional string owner_user_id = 2;
     optional string created_user_id = 3;
-    // Фильтр по городу
     optional string city = 4;
-    // Фильтр по типу недвижимости
     optional PropertyType property_type = 5;
   }
   Filter filter = 1;
-  // Пагинация
   optional int32 page_size = 2;
   optional string page_token = 3;
   optional string order_by = 4;
@@ -148,10 +152,81 @@ message UpdateLeadRequest {
   optional LeadStatus status = 5;
   optional string owner_user_id = 6;
   optional string city = 7;
-  // Тип недвижимости
   optional PropertyType property_type = 8;
 }
 
 message LeadResponse {
   Lead lead = 1;
 }
+
+// ========== AI-ФУНКЦИИ: Уточняющие вопросы ==========
+
+message GetClarificationQuestionsRequest {
+  string lead_id = 1 [(validate.rules).string.uuid = true];
+}
+
+message ClarificationQuestion {
+  string field = 1;
+  string question = 2;
+  string question_type = 3;
+  repeated string suggested_options = 4;
+  string importance = 5;
+}
+
+message GetClarificationQuestionsResponse {
+  bool needs_clarification = 1;
+  repeated ClarificationQuestion questions = 2;
+  string priority = 3;
+  repeated string missing_fields = 4;
+  double lead_quality_score = 5;
+}
+
+message ClarificationAnswer {
+  string field = 1;
+  string value = 2;
+}
+
+message ApplyClarificationAnswersRequest {
+  string lead_id = 1 [(validate.rules).string.uuid = true];
+  repeated ClarificationAnswer answers = 2;
+}
+
+message ApplyClarificationAnswersResponse {
+  bool success = 1;
+  bytes new_requirement = 2;
+  string message = 3;
+}
+
+// ========== AI-ФУНКЦИИ: Анализ намерений ==========
+
+message MatchWeights {
+  double price = 1;
+  double district = 2;
+  double rooms = 3;
+  double area = 4;
+  double semantic = 5;
+}
+
+message ExtractedCriteria {
+  optional int64 target_price = 1;
+  optional string target_district = 2;
+  optional int32 target_rooms = 3;
+  optional double target_area = 4;
+  repeated string preferred_districts = 5;
+  repeated string must_have_features = 6;
+  repeated string nice_to_have_features = 7;
+}
+
+message AnalyzeLeadIntentRequest {
+  string lead_id = 1 [(validate.rules).string.uuid = true];
+}
+
+message AnalyzeLeadIntentResponse {
+  MatchWeights recommended_weights = 1;
+  ExtractedCriteria extracted_criteria = 2;
+  string lead_type = 3;
+  double confidence = 4;
+  string explanation = 5;
+  bool used_llm = 6;
+}
+

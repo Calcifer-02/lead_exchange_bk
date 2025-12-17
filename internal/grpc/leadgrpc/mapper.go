@@ -4,6 +4,7 @@ import (
 	"lead_exchange/internal/domain"
 	pb "lead_exchange/pkg"
 
+	"github.com/google/uuid"
 	"github.com/samber/lo"
 )
 
@@ -86,3 +87,7 @@ func protoPropertyTypeToDomain(t pb.PropertyType) domain.PropertyType {
 	}
 }
 
+// parseUUID парсит строку UUID.
+func parseUUID(s string) (uuid.UUID, error) {
+	return uuid.Parse(s)
+}

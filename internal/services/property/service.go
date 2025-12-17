@@ -4,10 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"lead_exchange/internal/config"
 	"lead_exchange/internal/domain"
 	"lead_exchange/internal/lib/logger/sl"
 	"lead_exchange/internal/lib/ml"
+	"lead_exchange/internal/lib/reranker"
 	"lead_exchange/internal/repository"
+	"lead_exchange/internal/repository/property_repository"
+	"lead_exchange/internal/services/weights"
 	"log/slog"
 
 	"github.com/google/uuid"
@@ -21,6 +25,8 @@ type PropertyRepository interface {
 	UpdateEmbedding(ctx context.Context, propertyID uuid.UUID, embedding []float32) error
 	MatchProperties(ctx context.Context, leadEmbedding []float32, filter domain.PropertyFilter, limit int) ([]domain.MatchedProperty, error)
 	MatchPropertiesWithHardFilters(ctx context.Context, leadEmbedding []float32, filter domain.PropertyFilter, hardFilters *domain.HardFilters, limit int) ([]domain.MatchedProperty, error)
+	HybridSearch(ctx context.Context, params property_repository.HybridSearchParams) ([]domain.MatchedProperty, error)
+	FulltextSearch(ctx context.Context, query string, filter domain.PropertyFilter, limit int) ([]domain.MatchedProperty, error)
 }
 
 // LeadService нужен для получения embedding лида при матчинге.
@@ -29,22 +35,52 @@ type LeadService interface {
 }
 
 type Service struct {
-	log        *slog.Logger
-	repo       PropertyRepository
-	mlClient   ml.Client
-	leadService LeadService
+	log             *slog.Logger
+	repo            PropertyRepository
+	mlClient        ml.Client
+	rerankerClient  reranker.Client
+	weightsAnalyzer *weights.Analyzer
+	leadService     LeadService
+	searchCfg       config.SearchConfig
 }
 
 var (
 	ErrPropertyNotFound = errors.New("property not found")
 )
 
-func New(log *slog.Logger, repo PropertyRepository, mlClient ml.Client, leadService LeadService) *Service {
+func New(
+	log *slog.Logger,
+	repo PropertyRepository,
+	mlClient ml.Client,
+	leadService LeadService,
+) *Service {
 	return &Service{
-		log:        log,
-		repo:       repo,
-		mlClient:   mlClient,
+		log:         log,
+		repo:        repo,
+		mlClient:    mlClient,
 		leadService: leadService,
+		searchCfg:   config.SearchConfig{},
+	}
+}
+
+// NewWithAdvancedSearch создаёт сервис с поддержкой расширенного поиска.
+func NewWithAdvancedSearch(
+	log *slog.Logger,
+	repo PropertyRepository,
+	mlClient ml.Client,
+	rerankerClient reranker.Client,
+	weightsAnalyzer *weights.Analyzer,
+	leadService LeadService,
+	searchCfg config.SearchConfig,
+) *Service {
+	return &Service{
+		log:             log,
+		repo:            repo,
+		mlClient:        mlClient,
+		rerankerClient:  rerankerClient,
+		weightsAnalyzer: weightsAnalyzer,
+		leadService:     leadService,
+		searchCfg:       searchCfg,
 	}
 }
 
@@ -228,6 +264,164 @@ func (s *Service) ListProperties(ctx context.Context, filter domain.PropertyFilt
 // MatchProperties находит подходящие объекты недвижимости для лида по векторному сходству.
 func (s *Service) MatchProperties(ctx context.Context, leadID uuid.UUID, filter domain.PropertyFilter, limit int) ([]domain.MatchedProperty, error) {
 	return s.MatchPropertiesWeighted(ctx, leadID, filter, limit, nil, nil, false)
+}
+
+// MatchPropertiesAdvanced находит объекты с поддержкой всех продвинутых функций:
+// - Гибридный поиск (векторный + полнотекстовый)
+// - Динамические веса на основе анализа лида
+// - Реранкер для финального ранжирования
+func (s *Service) MatchPropertiesAdvanced(
+	ctx context.Context,
+	leadID uuid.UUID,
+	filter domain.PropertyFilter,
+	limit int,
+) ([]domain.MatchedProperty, error) {
+	const op = "property.Service.MatchPropertiesAdvanced"
+
+	lead, err := s.leadService.GetLead(ctx, leadID)
+	if err != nil {
+		return nil, fmt.Errorf("%s: failed to get lead: %w", op, err)
+	}
+
+	if len(lead.Embedding) == 0 {
+		return nil, fmt.Errorf("%s: lead has no embedding", op)
+	}
+
+	// Анализируем лид для динамических весов
+	var analysisResult *weights.AnalyzeResult
+	if s.weightsAnalyzer != nil && s.searchCfg.DynamicWeightsEnabled {
+		analysisResult, err = s.weightsAnalyzer.AnalyzeLead(ctx, lead)
+		if err != nil {
+			s.log.Warn("failed to analyze lead, using default weights",
+				slog.String("lead_id", leadID.String()),
+				sl.Err(err),
+			)
+		}
+	}
+
+	// Определяем веса и критерии
+	matchWeights := domain.DefaultWeights()
+	var softCriteria *domain.SoftCriteria
+
+	if analysisResult != nil {
+		matchWeights = analysisResult.Weights
+		softCriteria = analysisResult.Criteria
+
+		s.log.Debug("using dynamic weights",
+			slog.String("lead_id", leadID.String()),
+			slog.String("lead_type", analysisResult.LeadType),
+			slog.Float64("confidence", analysisResult.Confidence),
+		)
+	}
+
+	// Извлекаем критерии из requirement лида для жёстких фильтров
+	hardFilters := s.buildHardFiltersFromLead(lead, softCriteria)
+
+	// Определяем количество кандидатов для получения
+	candidateLimit := s.searchCfg.RerankerCandidates
+	if candidateLimit <= 0 {
+		candidateLimit = 50
+	}
+	if candidateLimit < limit {
+		candidateLimit = limit * 5
+	}
+
+	var matches []domain.MatchedProperty
+
+	// Выбираем стратегию поиска
+	if s.searchCfg.HybridSearchEnabled {
+		// Гибридный поиск (векторный + полнотекстовый)
+		searchQuery := lead.Title + " " + lead.Description
+
+		matches, err = s.repo.HybridSearch(ctx, property_repository.HybridSearchParams{
+			LeadEmbedding:  lead.Embedding,
+			SearchQuery:    searchQuery,
+			VectorWeight:   s.searchCfg.VectorWeight,
+			FulltextWeight: s.searchCfg.FulltextWeight,
+			Filter:         filter,
+			HardFilters:    hardFilters,
+			Limit:          candidateLimit,
+		})
+	} else {
+		// Только векторный поиск
+		matches, err = s.repo.MatchPropertiesWithHardFilters(ctx, lead.Embedding, filter, hardFilters, candidateLimit)
+	}
+
+	if err != nil {
+		s.log.Error("failed to search properties", sl.Err(err))
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	// Применяем реранкер если включен
+	if s.searchCfg.UseReranker && s.rerankerClient != nil && s.rerankerClient.IsEnabled() && len(matches) > 0 {
+		matches, err = s.applyReranker(ctx, lead, matches, limit)
+		if err != nil {
+			s.log.Warn("reranker failed, using original ranking",
+				slog.String("lead_id", leadID.String()),
+				sl.Err(err),
+			)
+		}
+	}
+
+	// Применяем взвешенное ранжирование
+	if len(matches) > 0 {
+		matches = s.rankMatches(matches, matchWeights, softCriteria)
+	}
+
+	// Ограничиваем результаты
+	if len(matches) > limit {
+		matches = matches[:limit]
+	}
+
+	s.log.Info("advanced matching completed",
+		slog.String("lead_id", leadID.String()),
+		slog.Int("results", len(matches)),
+		slog.Bool("hybrid_search", s.searchCfg.HybridSearchEnabled),
+		slog.Bool("reranker_used", s.searchCfg.UseReranker && s.rerankerClient != nil),
+	)
+
+	return matches, nil
+}
+
+// applyReranker применяет нейросетевой реранкер к кандидатам.
+func (s *Service) applyReranker(ctx context.Context, lead domain.Lead, candidates []domain.MatchedProperty, topN int) ([]domain.MatchedProperty, error) {
+	const op = "property.Service.applyReranker"
+
+	// Формируем запрос и документы для реранкера
+	query := lead.Title + ". " + lead.Description
+
+	documents := make([]string, len(candidates))
+	for i, c := range candidates {
+		documents[i] = c.Property.Title + ". " + c.Property.Description
+	}
+
+	// Вызываем реранкер
+	resp, err := s.rerankerClient.Rerank(ctx, reranker.RerankRequest{
+		Query:     query,
+		Documents: documents,
+		TopN:      topN,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	// Переупорядочиваем кандидатов согласно результатам реранкера
+	reranked := make([]domain.MatchedProperty, 0, len(resp.Results))
+	for _, r := range resp.Results {
+		if r.Index < len(candidates) {
+			match := candidates[r.Index]
+			// Комбинируем оригинальный similarity с reranker score
+			match.Similarity = (match.Similarity + r.RelevanceScore) / 2
+			reranked = append(reranked, match)
+		}
+	}
+
+	s.log.Debug("reranker applied",
+		slog.Int("input_candidates", len(candidates)),
+		slog.Int("output_candidates", len(reranked)),
+	)
+
+	return reranked, nil
 }
 
 // MatchPropertiesWeighted находит объекты с поддержкой взвешенного ранжирования и жёстких фильтров.
