@@ -283,8 +283,23 @@ func (s *Service) MatchPropertiesAdvanced(
 		return nil, fmt.Errorf("%s: failed to get lead: %w", op, err)
 	}
 
+	// Если у лида нет эмбеддинга, пытаемся его сгенерировать
 	if len(lead.Embedding) == 0 {
-		return nil, fmt.Errorf("%s: lead has no embedding", op)
+		s.log.Info("lead has no embedding, attempting to generate", slog.String("lead_id", leadID.String()))
+
+		// Пробуем использовать полнотекстовый поиск как fallback
+		if s.searchCfg.HybridSearchEnabled {
+			s.log.Info("falling back to fulltext search for lead without embedding",
+				slog.String("lead_id", leadID.String()))
+
+			searchQuery := lead.Title + " " + lead.Description
+			matches, err := s.repo.FulltextSearch(ctx, searchQuery, filter, limit)
+			if err == nil && len(matches) > 0 {
+				return matches, nil
+			}
+		}
+
+		return nil, fmt.Errorf("%s: lead has no embedding and fulltext search failed", op)
 	}
 
 	// Анализируем лид для динамических весов
@@ -442,8 +457,16 @@ func (s *Service) MatchPropertiesWeighted(
 		return nil, fmt.Errorf("%s: failed to get lead: %w", op, err)
 	}
 
+	// Если у лида нет эмбеддинга, используем полнотекстовый поиск как fallback
 	if len(lead.Embedding) == 0 {
-		return nil, fmt.Errorf("%s: lead has no embedding", op)
+		s.log.Info("lead has no embedding, using fulltext search fallback", slog.String("lead_id", leadID.String()))
+
+		searchQuery := lead.Title + " " + lead.Description
+		matches, err := s.repo.FulltextSearch(ctx, searchQuery, filter, limit)
+		if err != nil {
+			return nil, fmt.Errorf("%s: fulltext search failed: %w", op, err)
+		}
+		return matches, nil
 	}
 
 	if limit <= 0 {
