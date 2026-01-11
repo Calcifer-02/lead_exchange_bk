@@ -2,7 +2,7 @@
 -- +goose StatementBegin
 
 -- Тестовые данные
-INSERT INTO users (user_id, email, password_hash, first_name, last_name, phone, agency_name, avatar_url, role, status)
+INSERT INTO users (user_id, email, password, first_name, last_name, phone, agency_name, avatar_url, role, status)
 VALUES ('8c6f9c70-9312-4f17-94b0-2a2b9230f5d1',
         'user@m.c',
         '$2a$10$N9qo8uLOickgx2ZMRZoMy.MqrqB7xXN2dPFHzPVEoF2zQ5uXZ5m.q', -- пароль: password
