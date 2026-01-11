@@ -41,9 +41,10 @@ type App struct {
 }
 
 // ClarificationAgent интерфейс для агента уточнения.
-type ClarificationAgent interface {
-	// Заглушка для будущей интеграции
-}
+type ClarificationAgent = leadgrpc.ClarificationAgent
+
+// WeightsAnalyzer интерфейс для анализатора весов.
+type WeightsAnalyzer = leadgrpc.WeightsAnalyzer
 
 // New создаёт gRPC + HTTP (Gateway) сервер с Auth, User, File, Lead, Deal и Property сервисами.
 func New(
@@ -58,7 +59,7 @@ func New(
 	secret string,
 	disableAuth bool,
 ) *App {
-	return newApp(log, authSvc, userSvc, minioClient, leadSvc, dealSvc, propertySvc, nil, nil, nil, port, secret, disableAuth)
+	return newApp(log, authSvc, userSvc, minioClient, leadSvc, dealSvc, propertySvc, nil, nil, nil, nil, port, secret, disableAuth)
 }
 
 // NewWithAI создаёт gRPC сервер с поддержкой AI-функций (LLM, Vision).
@@ -71,13 +72,14 @@ func NewWithAI(
 	dealSvc dealgrpc.DealService,
 	propertySvc propertygrpc.PropertyService,
 	clarificationAgent ClarificationAgent,
+	weightsAnalyzer WeightsAnalyzer,
 	llmClient interface{}, // llm.Client
 	visionClient interface{}, // vision.Client
 	port int,
 	secret string,
 	disableAuth bool,
 ) *App {
-	return newApp(log, authSvc, userSvc, minioClient, leadSvc, dealSvc, propertySvc, llmClient, visionClient, clarificationAgent, port, secret, disableAuth)
+	return newApp(log, authSvc, userSvc, minioClient, leadSvc, dealSvc, propertySvc, llmClient, visionClient, clarificationAgent, weightsAnalyzer, port, secret, disableAuth)
 }
 
 // newApp — внутренняя функция для создания приложения.
@@ -92,6 +94,7 @@ func newApp(
 	llmClient interface{},
 	visionClient interface{},
 	clarificationAgent interface{},
+	weightsAnalyzer interface{},
 	port int,
 	secret string,
 	disableAuth bool,
@@ -125,7 +128,21 @@ func newApp(
 	// Регистрируем все gRPC сервера
 	authgrpc.RegisterAuthServerGRPC(gRPCServer, authSvc)
 	usergrpc.RegisterUserServerGRPC(gRPCServer, userSvc)
-	leadgrpc.RegisterLeadServerGRPC(gRPCServer, leadSvc)
+
+	// Регистрируем LeadService с опциональными AI-сервисами
+	leadOpts := []leadgrpc.ServerOption{}
+	if clarificationAgent != nil {
+		if ca, ok := clarificationAgent.(leadgrpc.ClarificationAgent); ok {
+			leadOpts = append(leadOpts, leadgrpc.WithClarificationAgent(ca))
+		}
+	}
+	if weightsAnalyzer != nil {
+		if wa, ok := weightsAnalyzer.(leadgrpc.WeightsAnalyzer); ok {
+			leadOpts = append(leadOpts, leadgrpc.WithWeightsAnalyzer(wa))
+		}
+	}
+	leadgrpc.RegisterLeadServerGRPC(gRPCServer, leadSvc, leadOpts...)
+
 	dealgrpc.RegisterDealServerGRPC(gRPCServer, dealSvc, userSvc)
 
 	// Регистрируем PropertyService с опциональными AI-клиентами

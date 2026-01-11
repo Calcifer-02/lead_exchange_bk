@@ -37,7 +37,6 @@
         "parameters": [
           {
             "name": "filter.status",
-            "description": " - LEAD_STATUS_UNSPECIFIED: Не задан (значение по умолчанию, не используется)\n - LEAD_STATUS_NEW: Создан, виден только создателю\n - LEAD_STATUS_PUBLISHED: Опубликован и доступен для покупки\n - LEAD_STATUS_PURCHASED: Куплен покупателем\n - LEAD_STATUS_DELETED: Удалён администратором",
             "in": "query",
             "required": false,
             "type": "string",
@@ -64,14 +63,26 @@
           },
           {
             "name": "filter.city",
-            "description": "Фильтр по городу",
             "in": "query",
             "required": false,
             "type": "string"
           },
           {
+            "name": "filter.propertyType",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "PROPERTY_TYPE_UNSPECIFIED",
+              "PROPERTY_TYPE_APARTMENT",
+              "PROPERTY_TYPE_HOUSE",
+              "PROPERTY_TYPE_COMMERCIAL",
+              "PROPERTY_TYPE_LAND"
+            ],
+            "default": "PROPERTY_TYPE_UNSPECIFIED"
+          },
+          {
             "name": "pageSize",
-            "description": "Пагинация",
             "in": "query",
             "required": false,
             "type": "integer",
@@ -200,6 +211,105 @@
         ]
       }
     },
+    "/v1/leads/{leadId}/analyze": {
+      "get": {
+        "summary": "Анализ намерений лида для определения оптимальных весов матчинга.",
+        "operationId": "LeadService_AnalyzeLeadIntent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1AnalyzeLeadIntentResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "leadId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "LeadService"
+        ]
+      }
+    },
+    "/v1/leads/{leadId}/clarification": {
+      "get": {
+        "summary": "Получить уточняющие вопросы для \"короткого\" лида.",
+        "operationId": "LeadService_GetClarificationQuestions",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetClarificationQuestionsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "leadId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "LeadService"
+        ]
+      },
+      "post": {
+        "summary": "Применить ответы на уточняющие вопросы.",
+        "operationId": "LeadService_ApplyClarificationAnswers",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ApplyClarificationAnswersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "leadId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/LeadServiceApplyClarificationAnswersBody"
+            }
+          }
+        ],
+        "tags": [
+          "LeadService"
+        ]
+      }
+    },
     "/v1/leads/{leadId}/reindex": {
       "post": {
         "summary": "Переиндексировать лида вручную.",
@@ -241,6 +351,18 @@
     }
   },
   "definitions": {
+    "LeadServiceApplyClarificationAnswersBody": {
+      "type": "object",
+      "properties": {
+        "answers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ClarificationAnswer"
+          }
+        }
+      }
+    },
     "LeadServiceReindexLeadBody": {
       "type": "object"
     },
@@ -264,8 +386,10 @@
           "type": "string"
         },
         "city": {
-          "type": "string",
-          "title": "Город"
+          "type": "string"
+        },
+        "propertyType": {
+          "$ref": "#/definitions/v1PropertyType"
         }
       }
     },
@@ -297,6 +421,79 @@
         }
       }
     },
+    "v1AnalyzeLeadIntentResponse": {
+      "type": "object",
+      "properties": {
+        "recommendedWeights": {
+          "$ref": "#/definitions/v1MatchWeights"
+        },
+        "extractedCriteria": {
+          "$ref": "#/definitions/v1ExtractedCriteria"
+        },
+        "leadType": {
+          "type": "string"
+        },
+        "confidence": {
+          "type": "number",
+          "format": "double"
+        },
+        "explanation": {
+          "type": "string"
+        },
+        "usedLlm": {
+          "type": "boolean"
+        }
+      }
+    },
+    "v1ApplyClarificationAnswersResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        },
+        "newRequirement": {
+          "type": "string",
+          "format": "byte"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ClarificationAnswer": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ClarificationQuestion": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "type": "string"
+        },
+        "question": {
+          "type": "string"
+        },
+        "questionType": {
+          "type": "string"
+        },
+        "suggestedOptions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "importance": {
+          "type": "string"
+        }
+      }
+    },
     "v1CreateLeadRequest": {
       "type": "object",
       "properties": {
@@ -320,8 +517,76 @@
           "type": "string"
         },
         "city": {
+          "type": "string"
+        },
+        "propertyType": {
+          "$ref": "#/definitions/v1PropertyType"
+        }
+      }
+    },
+    "v1ExtractedCriteria": {
+      "type": "object",
+      "properties": {
+        "targetPrice": {
           "type": "string",
-          "title": "Город (для жёсткой фильтрации при матчинге)"
+          "format": "int64"
+        },
+        "targetDistrict": {
+          "type": "string"
+        },
+        "targetRooms": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "targetArea": {
+          "type": "number",
+          "format": "double"
+        },
+        "preferredDistricts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "mustHaveFeatures": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "niceToHaveFeatures": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1GetClarificationQuestionsResponse": {
+      "type": "object",
+      "properties": {
+        "needsClarification": {
+          "type": "boolean"
+        },
+        "questions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ClarificationQuestion"
+          }
+        },
+        "priority": {
+          "type": "string"
+        },
+        "missingFields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "leadQualityScore": {
+          "type": "number",
+          "format": "double"
         }
       }
     },
@@ -329,8 +594,7 @@
       "type": "object",
       "properties": {
         "leadId": {
-          "type": "string",
-          "title": "UUID лида"
+          "type": "string"
         },
         "title": {
           "type": "string"
@@ -340,8 +604,7 @@
         },
         "requirement": {
           "type": "string",
-          "format": "byte",
-          "title": "JSON с предпочтениями (\"roomNumber\": 3, \"price\": \"5000000\")"
+          "format": "byte"
         },
         "contactName": {
           "type": "string"
@@ -356,12 +619,10 @@
           "$ref": "#/definitions/v1LeadStatus"
         },
         "ownerUserId": {
-          "type": "string",
-          "title": "текущий владелец"
+          "type": "string"
         },
         "createdUserId": {
-          "type": "string",
-          "title": "создатель"
+          "type": "string"
         },
         "createdAt": {
           "type": "string"
@@ -370,8 +631,10 @@
           "type": "string"
         },
         "city": {
-          "type": "string",
-          "title": "Город (для жёсткой фильтрации при матчинге)"
+          "type": "string"
+        },
+        "propertyType": {
+          "$ref": "#/definitions/v1PropertyType"
         }
       },
       "description": "Lead — сущность лида."
@@ -394,7 +657,7 @@
         "LEAD_STATUS_DELETED"
       ],
       "default": "LEAD_STATUS_UNSPECIFIED",
-      "description": "LeadStatus — статус лида.\n\n - LEAD_STATUS_UNSPECIFIED: Не задан (значение по умолчанию, не используется)\n - LEAD_STATUS_NEW: Создан, виден только создателю\n - LEAD_STATUS_PUBLISHED: Опубликован и доступен для покупки\n - LEAD_STATUS_PURCHASED: Куплен покупателем\n - LEAD_STATUS_DELETED: Удалён администратором"
+      "description": "LeadStatus — статус лида."
     },
     "v1ListLeadsRequestFilter": {
       "type": "object",
@@ -409,8 +672,10 @@
           "type": "string"
         },
         "city": {
-          "type": "string",
-          "title": "Фильтр по городу"
+          "type": "string"
+        },
+        "propertyType": {
+          "$ref": "#/definitions/v1PropertyType"
         }
       }
     },
@@ -425,6 +690,43 @@
           }
         }
       }
+    },
+    "v1MatchWeights": {
+      "type": "object",
+      "properties": {
+        "price": {
+          "type": "number",
+          "format": "double"
+        },
+        "district": {
+          "type": "number",
+          "format": "double"
+        },
+        "rooms": {
+          "type": "number",
+          "format": "double"
+        },
+        "area": {
+          "type": "number",
+          "format": "double"
+        },
+        "semantic": {
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
+    "v1PropertyType": {
+      "type": "string",
+      "enum": [
+        "PROPERTY_TYPE_UNSPECIFIED",
+        "PROPERTY_TYPE_APARTMENT",
+        "PROPERTY_TYPE_HOUSE",
+        "PROPERTY_TYPE_COMMERCIAL",
+        "PROPERTY_TYPE_LAND"
+      ],
+      "default": "PROPERTY_TYPE_UNSPECIFIED",
+      "description": "PropertyType — тип недвижимости."
     },
     "v1ReindexLeadResponse": {
       "type": "object",

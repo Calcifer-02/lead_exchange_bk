@@ -60,3 +60,10 @@ func RegisterLeadServerGRPC(server *grpc.Server, svc LeadService, opts ...Server
 
 // Для обратной совместимости (старый leadServer удалён, используем serverAPI)
 type leadServer = serverAPI
+
+// ClarificationAgent — type alias для использования в app.go
+type ClarificationAgent = *clarification.Agent
+
+// WeightsAnalyzer — type alias для использования в app.go
+type WeightsAnalyzer = *weights.Analyzer
+

@@ -1407,6 +1407,1279 @@ var _ interface {
 	ErrorName() string
 } = LeadResponseValidationError{}
 
+// Validate checks the field values on GetClarificationQuestionsRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *GetClarificationQuestionsRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetClarificationQuestionsRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// GetClarificationQuestionsRequestMultiError, or nil if none found.
+func (m *GetClarificationQuestionsRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetClarificationQuestionsRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if err := m._validateUuid(m.GetLeadId()); err != nil {
+		err = GetClarificationQuestionsRequestValidationError{
+			field:  "LeadId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return GetClarificationQuestionsRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *GetClarificationQuestionsRequest) _validateUuid(uuid string) error {
+	if matched := _lead_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
+// GetClarificationQuestionsRequestMultiError is an error wrapping multiple
+// validation errors returned by
+// GetClarificationQuestionsRequest.ValidateAll() if the designated
+// constraints aren't met.
+type GetClarificationQuestionsRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetClarificationQuestionsRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetClarificationQuestionsRequestMultiError) AllErrors() []error { return m }
+
+// GetClarificationQuestionsRequestValidationError is the validation error
+// returned by GetClarificationQuestionsRequest.Validate if the designated
+// constraints aren't met.
+type GetClarificationQuestionsRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetClarificationQuestionsRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetClarificationQuestionsRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetClarificationQuestionsRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetClarificationQuestionsRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetClarificationQuestionsRequestValidationError) ErrorName() string {
+	return "GetClarificationQuestionsRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetClarificationQuestionsRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetClarificationQuestionsRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetClarificationQuestionsRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetClarificationQuestionsRequestValidationError{}
+
+// Validate checks the field values on ClarificationQuestion with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ClarificationQuestion) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ClarificationQuestion with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ClarificationQuestionMultiError, or nil if none found.
+func (m *ClarificationQuestion) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ClarificationQuestion) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Field
+
+	// no validation rules for Question
+
+	// no validation rules for QuestionType
+
+	// no validation rules for Importance
+
+	if len(errors) > 0 {
+		return ClarificationQuestionMultiError(errors)
+	}
+
+	return nil
+}
+
+// ClarificationQuestionMultiError is an error wrapping multiple validation
+// errors returned by ClarificationQuestion.ValidateAll() if the designated
+// constraints aren't met.
+type ClarificationQuestionMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ClarificationQuestionMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ClarificationQuestionMultiError) AllErrors() []error { return m }
+
+// ClarificationQuestionValidationError is the validation error returned by
+// ClarificationQuestion.Validate if the designated constraints aren't met.
+type ClarificationQuestionValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ClarificationQuestionValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ClarificationQuestionValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ClarificationQuestionValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ClarificationQuestionValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ClarificationQuestionValidationError) ErrorName() string {
+	return "ClarificationQuestionValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ClarificationQuestionValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sClarificationQuestion.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ClarificationQuestionValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ClarificationQuestionValidationError{}
+
+// Validate checks the field values on GetClarificationQuestionsResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *GetClarificationQuestionsResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetClarificationQuestionsResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// GetClarificationQuestionsResponseMultiError, or nil if none found.
+func (m *GetClarificationQuestionsResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetClarificationQuestionsResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for NeedsClarification
+
+	for idx, item := range m.GetQuestions() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, GetClarificationQuestionsResponseValidationError{
+						field:  fmt.Sprintf("Questions[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, GetClarificationQuestionsResponseValidationError{
+						field:  fmt.Sprintf("Questions[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return GetClarificationQuestionsResponseValidationError{
+					field:  fmt.Sprintf("Questions[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	// no validation rules for Priority
+
+	// no validation rules for LeadQualityScore
+
+	if len(errors) > 0 {
+		return GetClarificationQuestionsResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetClarificationQuestionsResponseMultiError is an error wrapping multiple
+// validation errors returned by
+// GetClarificationQuestionsResponse.ValidateAll() if the designated
+// constraints aren't met.
+type GetClarificationQuestionsResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetClarificationQuestionsResponseMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetClarificationQuestionsResponseMultiError) AllErrors() []error { return m }
+
+// GetClarificationQuestionsResponseValidationError is the validation error
+// returned by GetClarificationQuestionsResponse.Validate if the designated
+// constraints aren't met.
+type GetClarificationQuestionsResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetClarificationQuestionsResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetClarificationQuestionsResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetClarificationQuestionsResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetClarificationQuestionsResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetClarificationQuestionsResponseValidationError) ErrorName() string {
+	return "GetClarificationQuestionsResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetClarificationQuestionsResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetClarificationQuestionsResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetClarificationQuestionsResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetClarificationQuestionsResponseValidationError{}
+
+// Validate checks the field values on ClarificationAnswer with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ClarificationAnswer) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ClarificationAnswer with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ClarificationAnswerMultiError, or nil if none found.
+func (m *ClarificationAnswer) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ClarificationAnswer) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Field
+
+	// no validation rules for Value
+
+	if len(errors) > 0 {
+		return ClarificationAnswerMultiError(errors)
+	}
+
+	return nil
+}
+
+// ClarificationAnswerMultiError is an error wrapping multiple validation
+// errors returned by ClarificationAnswer.ValidateAll() if the designated
+// constraints aren't met.
+type ClarificationAnswerMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ClarificationAnswerMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ClarificationAnswerMultiError) AllErrors() []error { return m }
+
+// ClarificationAnswerValidationError is the validation error returned by
+// ClarificationAnswer.Validate if the designated constraints aren't met.
+type ClarificationAnswerValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ClarificationAnswerValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ClarificationAnswerValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ClarificationAnswerValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ClarificationAnswerValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ClarificationAnswerValidationError) ErrorName() string {
+	return "ClarificationAnswerValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ClarificationAnswerValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sClarificationAnswer.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ClarificationAnswerValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ClarificationAnswerValidationError{}
+
+// Validate checks the field values on ApplyClarificationAnswersRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *ApplyClarificationAnswersRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ApplyClarificationAnswersRequest with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// ApplyClarificationAnswersRequestMultiError, or nil if none found.
+func (m *ApplyClarificationAnswersRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ApplyClarificationAnswersRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if err := m._validateUuid(m.GetLeadId()); err != nil {
+		err = ApplyClarificationAnswersRequestValidationError{
+			field:  "LeadId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	for idx, item := range m.GetAnswers() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, ApplyClarificationAnswersRequestValidationError{
+						field:  fmt.Sprintf("Answers[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, ApplyClarificationAnswersRequestValidationError{
+						field:  fmt.Sprintf("Answers[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return ApplyClarificationAnswersRequestValidationError{
+					field:  fmt.Sprintf("Answers[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return ApplyClarificationAnswersRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *ApplyClarificationAnswersRequest) _validateUuid(uuid string) error {
+	if matched := _lead_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
+// ApplyClarificationAnswersRequestMultiError is an error wrapping multiple
+// validation errors returned by
+// ApplyClarificationAnswersRequest.ValidateAll() if the designated
+// constraints aren't met.
+type ApplyClarificationAnswersRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ApplyClarificationAnswersRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ApplyClarificationAnswersRequestMultiError) AllErrors() []error { return m }
+
+// ApplyClarificationAnswersRequestValidationError is the validation error
+// returned by ApplyClarificationAnswersRequest.Validate if the designated
+// constraints aren't met.
+type ApplyClarificationAnswersRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ApplyClarificationAnswersRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ApplyClarificationAnswersRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ApplyClarificationAnswersRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ApplyClarificationAnswersRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ApplyClarificationAnswersRequestValidationError) ErrorName() string {
+	return "ApplyClarificationAnswersRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ApplyClarificationAnswersRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sApplyClarificationAnswersRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ApplyClarificationAnswersRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ApplyClarificationAnswersRequestValidationError{}
+
+// Validate checks the field values on ApplyClarificationAnswersResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the first error encountered is returned, or nil if there are
+// no violations.
+func (m *ApplyClarificationAnswersResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ApplyClarificationAnswersResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the result is a list of violation errors wrapped in
+// ApplyClarificationAnswersResponseMultiError, or nil if none found.
+func (m *ApplyClarificationAnswersResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ApplyClarificationAnswersResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Success
+
+	// no validation rules for NewRequirement
+
+	// no validation rules for Message
+
+	if len(errors) > 0 {
+		return ApplyClarificationAnswersResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// ApplyClarificationAnswersResponseMultiError is an error wrapping multiple
+// validation errors returned by
+// ApplyClarificationAnswersResponse.ValidateAll() if the designated
+// constraints aren't met.
+type ApplyClarificationAnswersResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ApplyClarificationAnswersResponseMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ApplyClarificationAnswersResponseMultiError) AllErrors() []error { return m }
+
+// ApplyClarificationAnswersResponseValidationError is the validation error
+// returned by ApplyClarificationAnswersResponse.Validate if the designated
+// constraints aren't met.
+type ApplyClarificationAnswersResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ApplyClarificationAnswersResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ApplyClarificationAnswersResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ApplyClarificationAnswersResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ApplyClarificationAnswersResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ApplyClarificationAnswersResponseValidationError) ErrorName() string {
+	return "ApplyClarificationAnswersResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ApplyClarificationAnswersResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sApplyClarificationAnswersResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ApplyClarificationAnswersResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ApplyClarificationAnswersResponseValidationError{}
+
+// Validate checks the field values on MatchWeights with the rules defined in
+// the proto definition for this message. If any rules are violated, the first
+// error encountered is returned, or nil if there are no violations.
+func (m *MatchWeights) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on MatchWeights with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// result is a list of violation errors wrapped in MatchWeightsMultiError, or
+// nil if none found.
+func (m *MatchWeights) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *MatchWeights) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Price
+
+	// no validation rules for District
+
+	// no validation rules for Rooms
+
+	// no validation rules for Area
+
+	// no validation rules for Semantic
+
+	if len(errors) > 0 {
+		return MatchWeightsMultiError(errors)
+	}
+
+	return nil
+}
+
+// MatchWeightsMultiError is an error wrapping multiple validation errors
+// returned by MatchWeights.ValidateAll() if the designated constraints aren't met.
+type MatchWeightsMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m MatchWeightsMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m MatchWeightsMultiError) AllErrors() []error { return m }
+
+// MatchWeightsValidationError is the validation error returned by
+// MatchWeights.Validate if the designated constraints aren't met.
+type MatchWeightsValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e MatchWeightsValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e MatchWeightsValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e MatchWeightsValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e MatchWeightsValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e MatchWeightsValidationError) ErrorName() string { return "MatchWeightsValidationError" }
+
+// Error satisfies the builtin error interface
+func (e MatchWeightsValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sMatchWeights.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = MatchWeightsValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = MatchWeightsValidationError{}
+
+// Validate checks the field values on ExtractedCriteria with the rules defined
+// in the proto definition for this message. If any rules are violated, the
+// first error encountered is returned, or nil if there are no violations.
+func (m *ExtractedCriteria) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ExtractedCriteria with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ExtractedCriteriaMultiError, or nil if none found.
+func (m *ExtractedCriteria) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ExtractedCriteria) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if m.TargetPrice != nil {
+		// no validation rules for TargetPrice
+	}
+
+	if m.TargetDistrict != nil {
+		// no validation rules for TargetDistrict
+	}
+
+	if m.TargetRooms != nil {
+		// no validation rules for TargetRooms
+	}
+
+	if m.TargetArea != nil {
+		// no validation rules for TargetArea
+	}
+
+	if len(errors) > 0 {
+		return ExtractedCriteriaMultiError(errors)
+	}
+
+	return nil
+}
+
+// ExtractedCriteriaMultiError is an error wrapping multiple validation errors
+// returned by ExtractedCriteria.ValidateAll() if the designated constraints
+// aren't met.
+type ExtractedCriteriaMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ExtractedCriteriaMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ExtractedCriteriaMultiError) AllErrors() []error { return m }
+
+// ExtractedCriteriaValidationError is the validation error returned by
+// ExtractedCriteria.Validate if the designated constraints aren't met.
+type ExtractedCriteriaValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ExtractedCriteriaValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ExtractedCriteriaValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ExtractedCriteriaValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ExtractedCriteriaValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ExtractedCriteriaValidationError) ErrorName() string {
+	return "ExtractedCriteriaValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ExtractedCriteriaValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sExtractedCriteria.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ExtractedCriteriaValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ExtractedCriteriaValidationError{}
+
+// Validate checks the field values on AnalyzeLeadIntentRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AnalyzeLeadIntentRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AnalyzeLeadIntentRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AnalyzeLeadIntentRequestMultiError, or nil if none found.
+func (m *AnalyzeLeadIntentRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AnalyzeLeadIntentRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if err := m._validateUuid(m.GetLeadId()); err != nil {
+		err = AnalyzeLeadIntentRequestValidationError{
+			field:  "LeadId",
+			reason: "value must be a valid UUID",
+			cause:  err,
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return AnalyzeLeadIntentRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+func (m *AnalyzeLeadIntentRequest) _validateUuid(uuid string) error {
+	if matched := _lead_uuidPattern.MatchString(uuid); !matched {
+		return errors.New("invalid uuid format")
+	}
+
+	return nil
+}
+
+// AnalyzeLeadIntentRequestMultiError is an error wrapping multiple validation
+// errors returned by AnalyzeLeadIntentRequest.ValidateAll() if the designated
+// constraints aren't met.
+type AnalyzeLeadIntentRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AnalyzeLeadIntentRequestMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AnalyzeLeadIntentRequestMultiError) AllErrors() []error { return m }
+
+// AnalyzeLeadIntentRequestValidationError is the validation error returned by
+// AnalyzeLeadIntentRequest.Validate if the designated constraints aren't met.
+type AnalyzeLeadIntentRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AnalyzeLeadIntentRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AnalyzeLeadIntentRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AnalyzeLeadIntentRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AnalyzeLeadIntentRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AnalyzeLeadIntentRequestValidationError) ErrorName() string {
+	return "AnalyzeLeadIntentRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AnalyzeLeadIntentRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAnalyzeLeadIntentRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AnalyzeLeadIntentRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AnalyzeLeadIntentRequestValidationError{}
+
+// Validate checks the field values on AnalyzeLeadIntentResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *AnalyzeLeadIntentResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on AnalyzeLeadIntentResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// AnalyzeLeadIntentResponseMultiError, or nil if none found.
+func (m *AnalyzeLeadIntentResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *AnalyzeLeadIntentResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetRecommendedWeights()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, AnalyzeLeadIntentResponseValidationError{
+					field:  "RecommendedWeights",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, AnalyzeLeadIntentResponseValidationError{
+					field:  "RecommendedWeights",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetRecommendedWeights()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return AnalyzeLeadIntentResponseValidationError{
+				field:  "RecommendedWeights",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetExtractedCriteria()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, AnalyzeLeadIntentResponseValidationError{
+					field:  "ExtractedCriteria",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, AnalyzeLeadIntentResponseValidationError{
+					field:  "ExtractedCriteria",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetExtractedCriteria()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return AnalyzeLeadIntentResponseValidationError{
+				field:  "ExtractedCriteria",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	// no validation rules for LeadType
+
+	// no validation rules for Confidence
+
+	// no validation rules for Explanation
+
+	// no validation rules for UsedLlm
+
+	if len(errors) > 0 {
+		return AnalyzeLeadIntentResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// AnalyzeLeadIntentResponseMultiError is an error wrapping multiple validation
+// errors returned by AnalyzeLeadIntentResponse.ValidateAll() if the
+// designated constraints aren't met.
+type AnalyzeLeadIntentResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m AnalyzeLeadIntentResponseMultiError) Error() string {
+	msgs := make([]string, 0, len(m))
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m AnalyzeLeadIntentResponseMultiError) AllErrors() []error { return m }
+
+// AnalyzeLeadIntentResponseValidationError is the validation error returned by
+// AnalyzeLeadIntentResponse.Validate if the designated constraints aren't met.
+type AnalyzeLeadIntentResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e AnalyzeLeadIntentResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e AnalyzeLeadIntentResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e AnalyzeLeadIntentResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e AnalyzeLeadIntentResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e AnalyzeLeadIntentResponseValidationError) ErrorName() string {
+	return "AnalyzeLeadIntentResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e AnalyzeLeadIntentResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sAnalyzeLeadIntentResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = AnalyzeLeadIntentResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = AnalyzeLeadIntentResponseValidationError{}
+
 // Validate checks the field values on ListLeadsRequest_Filter with the rules
 // defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.

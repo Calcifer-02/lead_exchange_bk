@@ -96,6 +96,7 @@ func New(
 		dealService,
 		propertyService,
 		clarificationAgent,
+		weightsAnalyzer,
 		llmClient,
 		visionClient,
 		grpcPort,
