@@ -54,16 +54,14 @@ func main() {
 		`CREATE TABLE IF NOT EXISTS users (
 			user_id    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 			email      TEXT UNIQUE NOT NULL,
-			password   TEXT        NOT NULL,
+			password_hash TEXT        NOT NULL,
 			first_name TEXT        NOT NULL,
 			last_name  TEXT        NOT NULL,
-			phone      TEXT,
-			avatar_url TEXT,
+			phone      TEXT UNIQUE,
 			agency_name TEXT,
-			role       TEXT        NOT NULL DEFAULT 'USER_ROLE_USER',
-			status     TEXT        NOT NULL DEFAULT 'USER_STATUS_PENDING',
-			created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-			updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+			avatar_url TEXT,
+			role       TEXT        NOT NULL,
+			created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 		)`,
 
 		`CREATE TABLE IF NOT EXISTS leads (
@@ -111,6 +109,7 @@ func main() {
 		)`,
 
 		// Дополнительные колонки
+		"ALTER TABLE users ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'ACTIVE'",
 		"ALTER TABLE leads ADD COLUMN IF NOT EXISTS city TEXT",
 		"ALTER TABLE leads ADD COLUMN IF NOT EXISTS property_type TEXT DEFAULT 'PROPERTY_TYPE_UNSPECIFIED'",
 		"ALTER TABLE properties ADD COLUMN IF NOT EXISTS city TEXT",
@@ -137,12 +136,12 @@ func main() {
 	// ЧАСТЬ 4: ТЕСТОВЫЕ ДАННЫЕ
 	fmt.Println("\nInserting test users...")
 	_, err = conn.Exec(ctx, `
-		INSERT INTO users (user_id, email, password, first_name, last_name, phone, avatar_url, agency_name, role, status)
+		INSERT INTO users (user_id, email, password_hash, first_name, last_name, phone, agency_name, avatar_url, role)
 		VALUES
-			('8c6f9c70-9312-4f17-94b0-2a2b9230f5d1', 'user@m.c', '$2a$10$N9qo8uLOickgx2ZMRZoMy.MqrqB7xXN2dPFHzPVEoF2zQ5uXZ5m.q', 'Поль', 'Зователёв', '+79991112233', 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png', 'Best Realty', 'USER_ROLE_USER', 'USER_STATUS_ACTIVE'),
-			('aea6842b-c540-4aa8-aa1f-90b1b46aba12', 'agent@m.c', '$2a$10$N9qo8uLOickgx2ZMRZoMy.MqrqB7xXN2dPFHzPVEoF2zQ5uXZ5m.q', 'Агент', 'Недвижимов', '+79994445566', 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png', 'Prime Estate', 'USER_ROLE_AGENT', 'USER_STATUS_ACTIVE'),
-			('f4e8f58b-94f4-4e0f-bd85-1b06b8a3f242', 'admin@m.c', '$2a$10$N9qo8uLOickgx2ZMRZoMy.MqrqB7xXN2dPFHzPVEoF2zQ5uXZ5m.q', 'Админ', 'Администратов', '+79992223344', 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png', 'Admin Corp', 'USER_ROLE_ADMIN', 'USER_STATUS_ACTIVE')
-		ON CONFLICT (email) DO NOTHING
+			('8c6f9c70-9312-4f17-94b0-2a2b9230f5d1', 'user@m.c', '$2a$10$NvlZBQmOscWN4lm9IwEQUu4Mz.27V5408.u6FA0XaRSXFiifgtndi', 'Поль', 'Зователёв', '+79991112233', 'Best Realty', 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png', 'USER'),
+			('aea6842b-c540-4aa8-aa1f-90b1b46aba12', 'user2@m.c', '$2a$10$NvlZBQmOscWN4lm9IwEQUu4Mz.27V5408.u6FA0XaRSXFiifgtndi', 'ПольДва', 'ЗователёвДва', '+79991112244', 'Worst Realty', 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png', 'USER'),
+			('f4e8f58b-94f4-4e0f-bd85-1b06b8a3f242', 'admin@m.c', '$2a$10$NvlZBQmOscWN4lm9IwEQUu4Mz.27V5408.u6FA0XaRSXFiifgtndi', 'Админ', 'Нистраторов', '+79992223344', 'Lead Exchange HQ', 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png', 'ADMIN')
+		ON CONFLICT (user_id) DO NOTHING
 	`)
 	if err != nil {
 		log.Printf("Warning inserting users: %v", err)

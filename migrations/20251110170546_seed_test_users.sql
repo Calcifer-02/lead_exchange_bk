@@ -2,34 +2,31 @@
 -- +goose StatementBegin
 
 -- Тестовые данные
-INSERT INTO users (user_id, email, password, first_name, last_name, phone, agency_name, avatar_url, role, status)
+INSERT INTO users (user_id, email, password_hash, first_name, last_name, phone, agency_name, avatar_url, role)
 VALUES ('8c6f9c70-9312-4f17-94b0-2a2b9230f5d1',
         'user@m.c',
-        '$2a$10$N9qo8uLOickgx2ZMRZoMy.MqrqB7xXN2dPFHzPVEoF2zQ5uXZ5m.q', -- пароль: password
+        '$2a$10$NvlZBQmOscWN4lm9IwEQUu4Mz.27V5408.u6FA0XaRSXFiifgtndi', -- пароль: password
         'Поль', 'Зователёв',
         '+79991112233',
         'Best Realty',
         'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
-        'USER_ROLE_USER',
-        'USER_STATUS_ACTIVE'),
+        'USER'),
        ('aea6842b-c540-4aa8-aa1f-90b1b46aba12',
-        'agent@m.c',
-        '$2a$10$N9qo8uLOickgx2ZMRZoMy.MqrqB7xXN2dPFHzPVEoF2zQ5uXZ5m.q', -- пароль: password
-        'Агент', 'Недвижимов',
-        '+79994445566',
-        'Prime Estate',
+        'user2@m.c',
+        '$2a$10$NvlZBQmOscWN4lm9IwEQUu4Mz.27V5408.u6FA0XaRSXFiifgtndi', -- пароль: password
+        'ПольДва', 'ЗователёвДва',
+        '+79991112244',
+        'Worst Realty',
         'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
-        'USER_ROLE_AGENT',
-        'USER_STATUS_ACTIVE'),
+        'USER'),
        ('f4e8f58b-94f4-4e0f-bd85-1b06b8a3f242',
         'admin@m.c',
-        '$2a$10$N9qo8uLOickgx2ZMRZoMy.MqrqB7xXN2dPFHzPVEoF2zQ5uXZ5m.q', -- пароль: password
-        'Админ', 'Администратов',
+        '$2a$10$NvlZBQmOscWN4lm9IwEQUu4Mz.27V5408.u6FA0XaRSXFiifgtndi', -- пароль: password
+        'Админ','Нистраторов',
         '+79992223344',
-        'Admin Corp',
+        'Lead Exchange HQ',
         'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
-        'USER_ROLE_ADMIN',
-        'USER_STATUS_ACTIVE')
+        'ADMIN')
 ON CONFLICT (user_id) DO NOTHING;
 
 -- +goose StatementEnd
