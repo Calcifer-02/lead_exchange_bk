@@ -453,9 +453,9 @@ func (r *PropertyRepository) MatchPropertiesWithHardFilters(
 
 	// ===== ЖЁСТКИЕ ФИЛЬТРЫ (критические поля) =====
 	if hardFilters != nil {
-		// Город — обязательное совпадение (case-insensitive)
+		// Город — совпадение (case-insensitive) ИЛИ city пустой/NULL (для старых записей)
 		if hardFilters.City != nil && *hardFilters.City != "" {
-			whereClauses = append(whereClauses, fmt.Sprintf("LOWER(city) = LOWER($%d)", paramCount))
+			whereClauses = append(whereClauses, fmt.Sprintf("(LOWER(city) = LOWER($%d) OR city IS NULL OR city = '')", paramCount))
 			params = append(params, *hardFilters.City)
 			paramCount++
 		}

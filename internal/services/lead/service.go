@@ -10,6 +10,7 @@ import (
 	"lead_exchange/internal/lib/ml"
 	"lead_exchange/internal/repository"
 	"log/slog"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -56,12 +57,21 @@ func (s *Service) CreateLead(ctx context.Context, lead domain.Lead) (uuid.UUID, 
 
 	log.Info("lead created successfully", slog.String("lead_id", id.String()))
 
-	// Генерируем embedding асинхронно (в фоне)
-	go func() {
-		if err := s.generateAndUpdateEmbedding(context.Background(), id, lead); err != nil {
-			s.log.Error("failed to generate embedding", slog.String("lead_id", id.String()), sl.Err(err))
-		}
-	}()
+	// Генерируем embedding синхронно с таймаутом 30 секунд
+	// Это критически важно для работы матчинга
+	embeddingCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	if err := s.generateAndUpdateEmbedding(embeddingCtx, id, lead); err != nil {
+		s.log.Error("failed to generate embedding for lead",
+			slog.String("lead_id", id.String()),
+			sl.Err(err),
+		)
+		// Не возвращаем ошибку — лид уже создан, просто матчинг не будет работать
+		// Можно будет переиндексировать позже
+	} else {
+		s.log.Info("embedding generated successfully", slog.String("lead_id", id.String()))
+	}
 
 	return id, nil
 }
@@ -279,4 +289,49 @@ func (s *Service) ListLeads(ctx context.Context, filter domain.LeadFilter) (*dom
 	}
 
 	return result, nil
+}
+
+// ReindexAllLeads переиндексирует все лиды (с эмбеддингами и без).
+// Возвращает количество успешно переиндексированных и общее количество.
+func (s *Service) ReindexAllLeads(ctx context.Context) (success int, total int, errs []error) {
+	const op = "lead.Service.ReindexAllLeads"
+
+	s.log.Info("starting reindex of all leads")
+
+	// Получаем все лиды
+	filter := domain.LeadFilter{}
+	limit := int32(1000)
+	filter.Limit = &limit
+
+	result, err := s.repo.ListLeads(ctx, filter)
+	if err != nil {
+		return 0, 0, []error{fmt.Errorf("%s: failed to list leads: %w", op, err)}
+	}
+
+	total = len(result.Items)
+	success = 0
+	errs = make([]error, 0)
+
+	for _, lead := range result.Items {
+		// Переиндексируем все лиды для обновления размерности эмбеддингов
+		reindexErr := s.reindexLead(ctx, lead.ID, lead)
+		if reindexErr != nil {
+			s.log.Warn("failed to reindex lead",
+				slog.String("lead_id", lead.ID.String()),
+				sl.Err(reindexErr),
+			)
+			errs = append(errs, fmt.Errorf("lead %s: %w", lead.ID.String(), reindexErr))
+			continue
+		}
+		success++
+		s.log.Info("lead reindexed", slog.String("lead_id", lead.ID.String()), slog.Int("progress", success))
+	}
+
+	s.log.Info("reindex completed",
+		slog.Int("success", success),
+		slog.Int("total", total),
+		slog.Int("errors", len(errs)),
+	)
+
+	return success, total, errs
 }

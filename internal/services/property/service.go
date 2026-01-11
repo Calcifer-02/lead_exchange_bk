@@ -13,6 +13,7 @@ import (
 	"lead_exchange/internal/repository/property_repository"
 	"lead_exchange/internal/services/weights"
 	"log/slog"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -100,12 +101,20 @@ func (s *Service) CreateProperty(ctx context.Context, property domain.Property) 
 
 	log.Info("property created successfully", slog.String("property_id", id.String()))
 
-	// Генерируем embedding асинхронно (в фоне)
-	go func() {
-		if err := s.generateAndUpdateEmbedding(context.Background(), id, property); err != nil {
-			s.log.Error("failed to generate embedding", slog.String("property_id", id.String()), sl.Err(err))
-		}
-	}()
+	// Генерируем embedding синхронно с таймаутом 30 секунд
+	// Это критически важно для работы матчинга
+	embeddingCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	if err := s.generateAndUpdateEmbedding(embeddingCtx, id, property); err != nil {
+		s.log.Error("failed to generate embedding for property",
+			slog.String("property_id", id.String()),
+			sl.Err(err),
+		)
+		// Не возвращаем ошибку — объект уже создан
+	} else {
+		s.log.Info("embedding generated successfully", slog.String("property_id", id.String()))
+	}
 
 	return id, nil
 }
@@ -248,6 +257,51 @@ func (s *Service) reindexProperty(ctx context.Context, propertyID uuid.UUID, pro
 	return nil
 }
 
+// ReindexAllProperties переиндексирует все объекты недвижимости.
+// Возвращает количество успешно переиндексированных и общее количество.
+func (s *Service) ReindexAllProperties(ctx context.Context) (success int, total int, errs []error) {
+	const op = "property.Service.ReindexAllProperties"
+
+	s.log.Info("starting reindex of all properties")
+
+	// Получаем все объекты
+	filter := domain.PropertyFilter{}
+	limit := int32(1000)
+	filter.Limit = &limit
+
+	result, err := s.repo.ListProperties(ctx, filter)
+	if err != nil {
+		return 0, 0, []error{fmt.Errorf("%s: failed to list properties: %w", op, err)}
+	}
+
+	total = len(result.Items)
+	success = 0
+	errs = make([]error, 0)
+
+	for _, property := range result.Items {
+		// Переиндексируем все объекты
+		reindexErr := s.reindexProperty(ctx, property.ID, property)
+		if reindexErr != nil {
+			s.log.Warn("failed to reindex property",
+				slog.String("property_id", property.ID.String()),
+				sl.Err(reindexErr),
+			)
+			errs = append(errs, fmt.Errorf("property %s: %w", property.ID.String(), reindexErr))
+			continue
+		}
+		success++
+		s.log.Info("property reindexed", slog.String("property_id", property.ID.String()), slog.Int("progress", success))
+	}
+
+	s.log.Info("reindex completed",
+		slog.Int("success", success),
+		slog.Int("total", total),
+		slog.Int("errors", len(errs)),
+	)
+
+	return success, total, errs
+}
+
 // ListProperties — возвращает объекты недвижимости по фильтру с пагинацией.
 func (s *Service) ListProperties(ctx context.Context, filter domain.PropertyFilter) (*domain.PaginatedResult[domain.Property], error) {
 	const op = "property.Service.ListProperties"
@@ -283,23 +337,13 @@ func (s *Service) MatchPropertiesAdvanced(
 		return nil, fmt.Errorf("%s: failed to get lead: %w", op, err)
 	}
 
-	// Если у лида нет эмбеддинга, пытаемся его сгенерировать
+	// Если у лида нет эмбеддинга, это ошибка — он должен был быть сгенерирован при создании
 	if len(lead.Embedding) == 0 {
-		s.log.Info("lead has no embedding, attempting to generate", slog.String("lead_id", leadID.String()))
-
-		// Пробуем использовать полнотекстовый поиск как fallback
-		if s.searchCfg.HybridSearchEnabled {
-			s.log.Info("falling back to fulltext search for lead without embedding",
-				slog.String("lead_id", leadID.String()))
-
-			searchQuery := lead.Title + " " + lead.Description
-			matches, err := s.repo.FulltextSearch(ctx, searchQuery, filter, limit)
-			if err == nil && len(matches) > 0 {
-				return matches, nil
-			}
-		}
-
-		return nil, fmt.Errorf("%s: lead has no embedding and fulltext search failed", op)
+		s.log.Error("lead has no embedding - this should not happen",
+			slog.String("lead_id", leadID.String()),
+			slog.String("lead_title", lead.Title),
+		)
+		return nil, fmt.Errorf("%s: lead has no embedding (lead_id=%s)", op, leadID.String())
 	}
 
 	// Анализируем лид для динамических весов
@@ -457,16 +501,13 @@ func (s *Service) MatchPropertiesWeighted(
 		return nil, fmt.Errorf("%s: failed to get lead: %w", op, err)
 	}
 
-	// Если у лида нет эмбеддинга, используем полнотекстовый поиск как fallback
+	// Если у лида нет эмбеддинга, это ошибка — он должен был быть сгенерирован при создании
 	if len(lead.Embedding) == 0 {
-		s.log.Info("lead has no embedding, using fulltext search fallback", slog.String("lead_id", leadID.String()))
-
-		searchQuery := lead.Title + " " + lead.Description
-		matches, err := s.repo.FulltextSearch(ctx, searchQuery, filter, limit)
-		if err != nil {
-			return nil, fmt.Errorf("%s: fulltext search failed: %w", op, err)
-		}
-		return matches, nil
+		s.log.Error("lead has no embedding - this should not happen",
+			slog.String("lead_id", leadID.String()),
+			slog.String("lead_title", lead.Title),
+		)
+		return nil, fmt.Errorf("%s: lead has no embedding (lead_id=%s)", op, leadID.String())
 	}
 
 	if limit <= 0 {
