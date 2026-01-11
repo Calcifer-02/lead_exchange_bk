@@ -33,9 +33,8 @@ COPY --from=builder /app/pkg ./pkg
 COPY --from=builder /go/bin/goose /usr/local/bin/goose
 
 ENV BACKEND_PORT=8081
-ENV POSTGRES_SETUP="user=postgres password=password dbname=lead_exchange host=postgres_db port=5432 sslmode=disable"
-
+ENV DATABASE_URL=${DATABASE_URL}
 EXPOSE 8081
 
 # CMD с запуском миграций и приложения
-CMD ["sh", "-c", "goose -dir ./migrations postgres \"$POSTGRES_SETUP\" up && ./app"]
+CMD ["sh", "-c", "goose -dir ./migrations postgres \"$DATABASE_URL\" up && ./app"]
