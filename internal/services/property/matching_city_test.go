@@ -104,7 +104,7 @@ func TestMatchingWithDifferentCities(t *testing.T) {
 		}
 
 		// Эмбеддинги (нормализованные, одинаковые для демонстрации)
-		embedding := make([]float32, 384)
+		embedding := make([]float32, 768)
 		for i := range embedding {
 			embedding[i] = 0.1
 		}

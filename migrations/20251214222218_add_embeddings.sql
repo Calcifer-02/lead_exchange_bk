@@ -5,10 +5,10 @@
 CREATE EXTENSION IF NOT EXISTS vector;
 
 -- Добавляем колонку embedding в таблицу leads
-ALTER TABLE leads ADD COLUMN IF NOT EXISTS embedding vector(384);
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS embedding vector(768);
 
 -- Добавляем колонку embedding в таблицу properties
-ALTER TABLE properties ADD COLUMN IF NOT EXISTS embedding vector(384);
+ALTER TABLE properties ADD COLUMN IF NOT EXISTS embedding vector(768);
 
 -- Создаём индексы для быстрого поиска по косинусному расстоянию
 CREATE INDEX IF NOT EXISTS leads_embedding_idx ON leads USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);

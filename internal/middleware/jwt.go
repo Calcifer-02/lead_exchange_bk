@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -39,6 +40,7 @@ func JWTUnaryInterceptor(secret string, disableAuth bool) grpc.UnaryServerInterc
 	) (interface{}, error) {
 		// Если auth отключен, используем тестовый user ID
 		if disableAuth {
+			slog.Warn("Auth disabled, using test user ID", "userID", testUserID, "method", info.FullMethod)
 			ctx = context.WithValue(ctx, userIDKey, testUserID)
 			return handler(ctx, req)
 		}
@@ -65,6 +67,7 @@ func JWTUnaryInterceptor(secret string, disableAuth bool) grpc.UnaryServerInterc
 		tokenString := parts[1]
 
 		if tokenString == "test" {
+			slog.Warn("Using test token, falling back to test user ID", "userID", testUserID, "method", info.FullMethod)
 			ctx = context.WithValue(ctx, userIDKey, testUserID)
 			return handler(ctx, req)
 		}
@@ -94,6 +97,8 @@ func JWTUnaryInterceptor(secret string, disableAuth bool) grpc.UnaryServerInterc
 		if err != nil {
 			return nil, fmt.Errorf("invalid uid in token")
 		}
+
+		slog.Debug("JWT auth successful", "userID", uid, "method", info.FullMethod)
 
 		// Передаём userID в контекст
 		ctx = context.WithValue(ctx, userIDKey, uid)

@@ -257,10 +257,10 @@ go build -o lead_exchange.exe ./cmd/main.go
 │  │   PostgreSQL │   │  ML Service │   │  Jina AI    │   │  OpenAI     │      │
 │  │   + pgvector │   │  (HF Space) │   │  Reranker   │   │  GPT-4o-mini│      │
 │  └──────┬──────┘   └──────┬──────┘   └──────┬──────┘   └──────┬──────┘      │
-│         │                 │                 │                 │              │
-│         │  Хранение       │  Embeddings     │  Reranking      │  Analysis    │
-│         │  + FTS          │  384-dim        │  Multilingual   │  Weights     │
-│         │                 │                 │                 │              │
+│  │                 │                 │                 │              │
+│  │  Хранение       │  Embeddings     │  Reranking      │  Analysis    │
+│  │  + FTS          │  768-dim        │  Multilingual   │  Weights     │
+│  │                 │                 │                 │              │
 │  ┌──────┴─────────────────┴─────────────────┴─────────────────┴──────┐      │
 │  │                         PropertyService                            │      │
 │  │  MatchPropertiesAdvanced() / HybridSearch() / ApplyWeightedRanking │      │

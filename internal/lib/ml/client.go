@@ -280,7 +280,7 @@ func (c *noopClient) Reindex(ctx context.Context, req ReindexRequest) (*ReindexR
 func (c *noopClient) ReindexBatch(ctx context.Context, req ReindexBatchRequest) (*ReindexBatchResponse, error) {
 	c.log.Warn("ML service is disabled, returning empty batch reindex response")
 	results := make([]ReindexResponse, len(req.Entities))
-	embedding := make([]float64, 384)
+	embedding := make([]float64, 768)
 	for i, entity := range req.Entities {
 		results[i] = ReindexResponse{
 			EntityID:     entity.EntityID,
