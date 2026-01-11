@@ -62,7 +62,8 @@ VALUES
         'DELETED',
         'f4e8f58b-94f4-4e0f-bd85-1b06b8a3f242',
         'f4e8f58b-94f4-4e0f-bd85-1b06b8a3f242'
-    );
+    )
+ON CONFLICT (lead_id) DO NOTHING;
 
 -- +goose StatementEnd
 

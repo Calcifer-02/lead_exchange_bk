@@ -136,7 +136,8 @@ VALUES
         'DELETED',
         '8c6f9c70-9312-4f17-94b0-2a2b9230f5d1',
         '8c6f9c70-9312-4f17-94b0-2a2b9230f5d1'
-    );
+    )
+ON CONFLICT (property_id) DO NOTHING;
 
 -- +goose StatementEnd
 

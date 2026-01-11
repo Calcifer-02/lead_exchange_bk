@@ -29,7 +29,8 @@ VALUES ('8c6f9c70-9312-4f17-94b0-2a2b9230f5d1',
         'Admin Corp',
         'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
         'USER_ROLE_ADMIN',
-        'USER_STATUS_ACTIVE');
+        'USER_STATUS_ACTIVE')
+ON CONFLICT (user_id) DO NOTHING;
 
 -- +goose StatementEnd
 
