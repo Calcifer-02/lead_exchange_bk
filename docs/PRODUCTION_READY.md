@@ -15,7 +15,7 @@
 
 #### ML Embeddings (✅ Готов)
 - Интеграция с внешним ML сервисом (https://calcifer0323-matching.hf.space)
-- 384-мерные эмбеддинги для семантического поиска
+- 1024-мерные эмбеддинги для семантического поиска (ai-forever/ru-en-RoSBERTa)
 - Автоматическая генерация при создании объектов
 
 #### Jina Reranker (✅ Готов)
@@ -180,7 +180,7 @@ go build -o lead_exchange.exe ./cmd/main.go
 │  │  ВЕКТОРНЫЙ ПОИСК (70%)          │  │  ПОЛНОТЕКСТОВЫЙ ПОИСК (30%)     │   │
 │  │  ┌───────────────────────────┐  │  │  ┌───────────────────────────┐  │   │
 │  │  │ ML Service (HF Space)     │  │  │  │ PostgreSQL FTS            │  │   │
-│  │  │ → 384-dim embedding       │  │  │  │ → ts_rank + ts_query      │  │   │
+│  │  │ → 1024-dim embedding      │  │  │  │ → ts_rank + ts_query      │  │   │
 │  │  │ → pgvector cosine dist    │  │  │  │ → russian dictionary      │  │   │
 │  │  └───────────────────────────┘  │  │  └───────────────────────────┘  │   │
 │  └─────────────────────────────────┘  └─────────────────────────────────┘   │
@@ -259,7 +259,7 @@ go build -o lead_exchange.exe ./cmd/main.go
 │  └──────┬──────┘   └──────┬──────┘   └──────┬──────┘   └──────┬──────┘      │
 │  │                 │                 │                 │              │
 │  │  Хранение       │  Embeddings     │  Reranking      │  Analysis    │
-│  │  + FTS          │  768-dim        │  Multilingual   │  Weights     │
+│  │  + FTS          │  1024-dim       │  Multilingual   │  Weights     │
 │  │                 │                 │                 │              │
 │  ┌──────┴─────────────────┴─────────────────┴─────────────────┴──────┐      │
 │  │                         PropertyService                            │      │
