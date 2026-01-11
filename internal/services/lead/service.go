@@ -299,9 +299,11 @@ func (s *Service) ReindexAllLeads(ctx context.Context) (success int, total int, 
 	s.log.Info("starting reindex of all leads")
 
 	// Получаем все лиды
-	filter := domain.LeadFilter{}
-	limit := int32(1000)
-	filter.Limit = &limit
+	filter := domain.LeadFilter{
+		Pagination: &domain.PaginationParams{
+			PageSize: 1000,
+		},
+	}
 
 	result, err := s.repo.ListLeads(ctx, filter)
 	if err != nil {

@@ -265,9 +265,11 @@ func (s *Service) ReindexAllProperties(ctx context.Context) (success int, total 
 	s.log.Info("starting reindex of all properties")
 
 	// Получаем все объекты
-	filter := domain.PropertyFilter{}
-	limit := int32(1000)
-	filter.Limit = &limit
+	filter := domain.PropertyFilter{
+		Pagination: &domain.PaginationParams{
+			PageSize: 1000,
+		},
+	}
 
 	result, err := s.repo.ListProperties(ctx, filter)
 	if err != nil {
