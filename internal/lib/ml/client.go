@@ -249,11 +249,11 @@ type noopClient struct {
 
 func (c *noopClient) PrepareAndEmbed(ctx context.Context, req PrepareAndEmbedRequest) (*PrepareAndEmbedResponse, error) {
 	c.log.Warn("ML service is disabled, returning empty embedding")
-	// Возвращаем пустой вектор размерности 384 (стандартная размерность)
-	embedding := make([]float64, 384)
+	// Возвращаем пустой вектор размерности 1024 (стандартная размерность для ai-forever/ru-en-RoSBERTa)
+	embedding := make([]float64, 1024)
 	return &PrepareAndEmbedResponse{
 		Embedding:    embedding,
-		Dimensions:   384,
+		Dimensions:   1024,
 		PreparedText: "",
 	}, nil
 }
@@ -261,13 +261,13 @@ func (c *noopClient) PrepareAndEmbed(ctx context.Context, req PrepareAndEmbedReq
 func (c *noopClient) GetModelInfo(ctx context.Context) (*ModelInfo, error) {
 	return &ModelInfo{
 		Model:      "disabled",
-		Dimensions: 384,
+		Dimensions: 1024,
 	}, nil
 }
 
 func (c *noopClient) Reindex(ctx context.Context, req ReindexRequest) (*ReindexResponse, error) {
 	c.log.Warn("ML service is disabled, returning empty reindex response")
-	embedding := make([]float64, 384)
+	embedding := make([]float64, 1024)
 	return &ReindexResponse{
 		EntityID:     req.EntityID,
 		EntityType:   req.EntityType,
@@ -280,7 +280,7 @@ func (c *noopClient) Reindex(ctx context.Context, req ReindexRequest) (*ReindexR
 func (c *noopClient) ReindexBatch(ctx context.Context, req ReindexBatchRequest) (*ReindexBatchResponse, error) {
 	c.log.Warn("ML service is disabled, returning empty batch reindex response")
 	results := make([]ReindexResponse, len(req.Entities))
-	embedding := make([]float64, 768)
+	embedding := make([]float64, 1024)
 	for i, entity := range req.Entities {
 		results[i] = ReindexResponse{
 			EntityID:     entity.EntityID,

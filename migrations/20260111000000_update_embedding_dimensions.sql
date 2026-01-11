@@ -1,15 +1,15 @@
 -- +goose Up
 -- +goose StatementBegin
 
--- Обновление размерности эмбеддингов с 384 на 768 для модели ai-forever/ru-en-RoSBERTa
+-- Обновление размерности эмбеддингов с 384 на 1024 для модели ai-forever/ru-en-RoSBERTa
 -- ВНИМАНИЕ: Это изменит тип колонки и очистит существующие данные эмбеддингов!
 -- Эмбеддинги нужно будет пересчитать через ML сервис
 
 -- Обновляем колонку embedding в таблице leads
-ALTER TABLE leads ALTER COLUMN embedding TYPE vector(768);
+ALTER TABLE leads ALTER COLUMN embedding TYPE vector(1024);
 
 -- Обновляем колонку embedding в таблице properties
-ALTER TABLE properties ALTER COLUMN embedding TYPE vector(768);
+ALTER TABLE properties ALTER COLUMN embedding TYPE vector(1024);
 
 -- Пересоздаём индексы для оптимизации с новой размерностью
 DROP INDEX IF EXISTS leads_embedding_idx;

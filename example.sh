@@ -25,7 +25,7 @@ curl -X POST "https://calcifer0323-matching.hf.space/prepare-and-embed" \
     "district": "Центральный"
   }'
 
-Ожидаемый результат: embedding размерности 768 (модель ai-forever/ru-en-RoSBERTa)
+Ожидаемый результат: embedding размерности 1024 (модель ai-forever/ru-en-RoSBERTa)
 
 ============================================================================
 1. Создание лида (embedding будет сгенерирован автоматически)
